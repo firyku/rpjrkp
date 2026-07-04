@@ -79,7 +79,7 @@ if (($_GET['action'] ?? '') === 'logout') {
     exit;
 }
 
-$cacheVersion = 'apdi-9';
+$cacheVersion = 'apdi-10';
 $adminPages = [
     'rpjmdesa' => [
         'title' => 'RPJMDesa',
@@ -129,8 +129,8 @@ $isAdminView = $currentView !== 'dashboard';
       (function() {
         const urlParams = new URLSearchParams(window.location.search);
         const v = urlParams.get('v');
-        if (v && v !== 'apdi-9') {
-          urlParams.set('v', 'apdi-9');
+        if (v && v !== 'apdi-10') {
+          urlParams.set('v', 'apdi-10');
           window.location.search = urlParams.toString();
         }
       })();
