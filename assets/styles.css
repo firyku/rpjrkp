@@ -2723,7 +2723,7 @@ body {
 
 /* --- OVERRIDES UNTUK SIDEBAR SIMPEL (IMAGE #2) --- */
 
-.material-sidebar, .sidebar {
+.material-sidebar {
   background: #005F60 !important; /* Deep Teal */
   background-image: none !important;
   box-shadow: 6px 0 20px rgba(0, 0, 0, 0.15) !important;
@@ -2732,7 +2732,7 @@ body {
 }
 
 /* Jarak antar menu dibuat lebih renggang */
-.material-menu, .side-nav {
+.material-menu {
   display: grid !important;
   gap: 18px !important;
   padding: 0 !important;
@@ -2740,8 +2740,7 @@ body {
 
 /* Desain menu utama dan details */
 .material-menu a,
-.material-menu-group summary,
-.side-nav a {
+.material-menu-group summary {
   display: flex !important;
   gap: 16px !important;
   align-items: center !important;
@@ -2760,8 +2759,7 @@ body {
 }
 
 .material-menu a svg,
-.material-menu-group summary svg,
-.side-nav a svg {
+.material-menu-group summary svg {
   width: 22px !important;
   height: 22px !important;
   color: rgba(255, 255, 255, 0.9) !important;
@@ -2771,9 +2769,7 @@ body {
 .material-menu a.active,
 .material-menu a:hover,
 .material-menu-group summary:hover,
-details[open] > summary,
-.side-nav a.active,
-.side-nav a:hover {
+details[open] > summary {
   background: #ffffff !important;
   color: #005F60 !important;
   border-left: 5px solid #84cc16 !important; /* Indikator garis hijau di kiri */
@@ -2784,9 +2780,7 @@ details[open] > summary,
 .material-menu a.active svg,
 .material-menu a:hover svg,
 .material-menu-group summary:hover svg,
-details[open] > summary svg,
-.side-nav a.active svg,
-.side-nav a:hover svg {
+details[open] > summary svg {
   color: #005F60 !important;
 }
 
