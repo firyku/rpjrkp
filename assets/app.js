@@ -64,6 +64,7 @@ let currentMaterialFormKey = "dashboard";
 let materialSavedRows = [];
 let desaSavedRows = [];
 let editingDesaRowId = null;
+let editingMaterialRowId = null;
 
 function createReportTemplate(key, title) {
   return {
@@ -828,6 +829,7 @@ function createMaterialField(field) {
       updateHiddenValue();
       if (window.lucide) lucide.createIcons();
     };
+    container.addParagraphRow = addParagraphRow;
 
     const initialText = field.value || "";
     if (initialText && initialText !== "-") {
@@ -924,6 +926,7 @@ function createMaterialField(field) {
       updateHiddenValue();
       if (window.lucide) lucide.createIcons();
     };
+    container.addParagraphRow = addParagraphRow;
 
     addMissionRow("1", "");
 
@@ -1140,13 +1143,70 @@ function renderMaterialResultTable() {
     });
 
     const actionCell = document.createElement("td");
+    actionCell.style.cssText = "display: flex; gap: 8px; align-items: center; justify-content: center;";
+
+    // Edit button
+    const editButton = document.createElement("button");
+    editButton.className = "material-edit-row btn btn-sm btn-primary";
+    editButton.type = "button";
+    editButton.dataset.rowId = row.id;
+    editButton.setAttribute("aria-label", "Edit baris");
+    editButton.innerHTML = '<i data-lucide="pencil"></i>';
+    editButton.addEventListener("click", () => {
+      editingMaterialRowId = row.id;
+      const submitBtn = materialAutoForm.querySelector('[type="submit"]');
+      if (submitBtn) {
+        submitBtn.innerHTML = '<i data-lucide="check"></i>Ubah Data';
+      }
+      
+      template.fields.forEach(field => {
+        const control = materialAutoForm.elements[field.name];
+        const valObj = row.values ? row.values.find(v => v.name === field.name || v.label === field.label) : null;
+        const val = valObj ? valObj.value : "";
+        if (control) {
+          control.value = val;
+          control.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        
+        const container = materialAutoForm.querySelector(`[name="${field.name}"]`)?.closest(".paragraph-list-container");
+        if (container && val && val !== "-") {
+          const listWrapper = container.querySelector(".paragraph-list-wrapper");
+          listWrapper.innerHTML = "";
+          const paragraphs = val.split(/\n\n+/);
+          paragraphs.forEach(p => {
+            if (container.addParagraphRow) {
+              container.addParagraphRow(p);
+            }
+          });
+        }
+      });
+      document.querySelector("#materialAutoForm")?.scrollIntoView({ behavior: "smooth" });
+    });
+
+    // Tambah button
+    const tambahButton = document.createElement("button");
+    tambahButton.className = "material-new-row btn btn-sm btn-success";
+    tambahButton.type = "button";
+    tambahButton.setAttribute("aria-label", "Tambah baru");
+    tambahButton.innerHTML = '<i data-lucide="plus-circle"></i>';
+    tambahButton.addEventListener("click", () => {
+      materialAutoForm.reset();
+      editingMaterialRowId = null;
+      const submitBtn = materialAutoForm.querySelector('[type="submit"]');
+      if (submitBtn) {
+        submitBtn.innerHTML = '<i data-lucide="save"></i>Simpan Data';
+      }
+    });
+
+    // Hapus button
     const deleteButton = document.createElement("button");
-    deleteButton.className = "material-delete-row";
+    deleteButton.className = "material-delete-row btn btn-sm btn-danger";
     deleteButton.type = "button";
     deleteButton.dataset.rowId = row.id;
     deleteButton.setAttribute("aria-label", "Hapus baris");
     deleteButton.innerHTML = '<i data-lucide="trash-2"></i>';
-    actionCell.append(deleteButton);
+
+    actionCell.append(editButton, tambahButton, deleteButton);
     tableRow.append(actionCell);
 
     materialResultRows.append(tableRow);
@@ -1168,16 +1228,34 @@ function addMaterialResultRow() {
     minute: "2-digit",
   }).format(new Date());
 
-  materialSavedRows.unshift({
-    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    module: activeMaterialModule.title,
-    form: template.title,
-    formKey: currentMaterialFormKey,
-    summary: summarizeMaterialValues(values),
-    status: "Berhasil di input",
-    createdAt,
-    values,
-  });
+  if (editingMaterialRowId) {
+    materialSavedRows = materialSavedRows.map(row => {
+      if (row.id === editingMaterialRowId) {
+        return Object.assign({}, row, {
+          values: values,
+          summary: summarizeMaterialValues(values),
+          createdAt: createdAt
+        });
+      }
+      return row;
+    });
+    editingMaterialRowId = null;
+    const submitBtn = materialAutoForm.querySelector('[type="submit"]');
+    if (submitBtn) {
+      submitBtn.innerHTML = '<i data-lucide="save"></i>Simpan Data';
+    }
+  } else {
+    materialSavedRows.unshift({
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      module: activeMaterialModule.title,
+      form: template.title,
+      formKey: currentMaterialFormKey,
+      summary: summarizeMaterialValues(values),
+      status: "Berhasil di input",
+      createdAt,
+      values,
+    });
+  }
 
   saveMaterialRows();
   renderMaterialResultTable();
@@ -1430,20 +1508,28 @@ materialAutoForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const submitButton = materialAutoForm.querySelector('[type="submit"]');
   if (!submitButton) return;
+  const wasEditing = Boolean(editingMaterialRowId);
   addMaterialResultRow();
-  const originalText = submitButton.innerHTML;
   submitButton.innerHTML = '<i data-lucide="check"></i>Tersimpan';
   submitButton.classList.add("is-saved");
   if (window.lucide) lucide.createIcons();
   window.setTimeout(() => {
-    submitButton.innerHTML = originalText;
+    submitButton.innerHTML = '<i data-lucide="save"></i>Simpan Data';
     submitButton.classList.remove("is-saved");
     if (window.lucide) lucide.createIcons();
   }, 1400);
 });
 
+materialAutoForm?.addEventListener("reset", () => {
+  editingMaterialRowId = null;
+  const submitBtn = materialAutoForm.querySelector('[type="submit"]');
+  if (submitBtn) {
+    submitBtn.innerHTML = '<i data-lucide="save"></i>Simpan Data';
+  }
+});
+
 materialResultRows?.addEventListener("click", (event) => {
-  const deleteButton = event.target.closest("[data-row-id]");
+  const deleteButton = event.target.closest(".material-delete-row");
   if (!deleteButton) return;
   materialSavedRows = materialSavedRows.filter((row) => row.id !== deleteButton.dataset.rowId);
   saveMaterialRows();
