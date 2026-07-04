@@ -125,6 +125,16 @@ $isAdminView = $currentView !== 'dashboard';
 <!doctype html>
 <html lang="id">
   <head>
+    <script>
+      (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const v = urlParams.get('v');
+        if (v && v !== 'apdi-9') {
+          urlParams.set('v', 'apdi-9');
+          window.location.search = urlParams.toString();
+        }
+      })();
+    </script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= htmlspecialchars($appTitle, ENT_QUOTES, 'UTF-8') ?></title>
