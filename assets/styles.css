@@ -2846,3 +2846,84 @@ details[open] > summary svg {
   margin-top: auto !important;
   border-radius: 0px !important;
 }
+/* --- WIZARD STYLING (IMAGE #2) --- */
+.material-wizard {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 24px;
+  overflow-x: auto;
+  padding: 20px 10px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  scrollbar-width: thin;
+}
+
+.wizard-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+  text-decoration: none !important;
+  cursor: pointer;
+  position: relative;
+}
+
+.wizard-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.wizard-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-align: center;
+  white-space: normal;
+  max-width: 140px;
+  transition: all 0.3s ease;
+}
+
+/* Active State */
+.wizard-step.active .wizard-icon {
+  background: #005F60 !important;
+  border-color: #005F60 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 10px rgba(0, 95, 96, 0.3);
+}
+
+.wizard-step.active .wizard-label {
+  color: #005F60 !important;
+  font-weight: 800;
+}
+
+/* Connecting Line */
+.wizard-step::after {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: #e5e7eb;
+  z-index: 1;
+}
+
+.wizard-step:last-child::after {
+  display: none;
+}
+
+.wizard-step.active::after {
+  background: #005F60;
+}

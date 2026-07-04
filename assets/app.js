@@ -224,25 +224,179 @@ const materialFormTemplates = {
       { label: "Misi Desa", name: "misi_list", type: "mission_list", full: true },
     ],
   },
-  input_profil_desa: {
-    key: "input_profil_desa",
-    icon: "map-pinned",
-    title: "Input Profil Desa",
-    description: "Form mengikuti kolom tabel PROFIL pada Access.",
+  input_sejarah_desa: {
+    key: "input_sejarah_desa",
+    icon: "book-open",
+    title: "Input Sejarah Desa",
+    description: "Form mengikuti tabel sejarah pada Access.",
     fields: [
-      { label: "Jarak Ke Kabupaten", name: "jarak_ke_kabupaten", type: "text", placeholder: "Contoh: 30 Km" },
-      { label: "Luas Wilayah (Ha)", name: "luas_wilayah", type: "text", placeholder: "Contoh: 60 Ha" },
-      { label: "Sebelah Utara", name: "sebelah_utara", type: "text", placeholder: "Batas utara" },
-      { label: "Sebelah Timur", name: "sebelah_timur", type: "text", placeholder: "Batas timur" },
-      { label: "Sebelah Selatan", name: "sebelah_selatan", type: "text", placeholder: "Batas selatan" },
-      { label: "Sebelah Barat", name: "sebelah_barat", type: "text", placeholder: "Batas barat" },
-      { label: "Jumlah RT", name: "jumlah_rt", type: "text", placeholder: "Jumlah RT" },
-      { label: "Profil Tahun", name: "profil_tahun", type: "number", placeholder: "2026" },
-      { label: "Profil Pada Semester", name: "profil_semester", type: "select", options: ["Semester I", "Semester II"], value: "Semester I" },
-      { label: "Mata Pencaharian Terbanyak", name: "mata_pencaharian_terbanyak", type: "text", placeholder: "Contoh: Petani" },
-      { label: "Agama Mayoritas", name: "agama_mayoritas", type: "text", placeholder: "Agama mayoritas" },
-      { label: "Komoditas Utama", name: "komoditas_utama", type: "textarea", full: true, placeholder: "Pisahkan dengan koma bila lebih dari satu" },
-    ],
+      { label: "Uraian Sejarah", name: "uraian_sejarah", type: "textarea", full: true, placeholder: "Uraian sejarah desa" }
+    ]
+  },
+  input_sejarah_kades: {
+    key: "input_sejarah_kades",
+    icon: "users",
+    title: "Sejarah Jabatan Kepala Desa",
+    description: "Form mengikuti tabel nm_KADES pada Access.",
+    fields: [
+      { label: "No", name: "no", type: "number", placeholder: "1" },
+      { label: "Nama Kepala Desa", name: "nama_kepala_desa", type: "text", placeholder: "Nama Kepala Desa" },
+      { label: "Tahun", name: "tahun", type: "text", placeholder: "Contoh: 2021-2027" }
+    ]
+  },
+  input_profil_pendidikan: {
+    key: "input_profil_pendidikan",
+    icon: "graduation-cap",
+    title: "Input Profil Tentang Pendidikan",
+    description: "Form mengikuti tabel pendidikan pada Access.",
+    fields: [
+      { label: "No", name: "no", type: "number", placeholder: "1" },
+      { label: "Pendidikan", name: "pendidikan", type: "text", placeholder: "Tingkat pendidikan" },
+      { label: "L (Laki-laki)", name: "l", type: "number", placeholder: "Jumlah Laki-laki" },
+      { label: "P (Perempuan)", name: "p", type: "number", placeholder: "Jumlah Perempuan" },
+      { label: "Jumlah", name: "jumlah", type: "number", placeholder: "Total" }
+    ]
+  },
+  input_profil_kesehatan: {
+    key: "input_profil_kesehatan",
+    icon: "activity",
+    title: "Input Profil Tentang Kesehatan",
+    description: "Form mengikuti tabel kesehatan pada Access.",
+    fields: [
+      { label: "Uraian", name: "uraian", type: "text", placeholder: "Uraian kondisi kesehatan" },
+      { label: "T1 (Tahun 1)", name: "t1", type: "number", placeholder: "Jumlah" },
+      { label: "T2 (Tahun 2)", name: "t2", type: "number", placeholder: "Jumlah" },
+      { label: "T3 (Tahun 3)", name: "t3", type: "number", placeholder: "Jumlah" }
+    ]
+  },
+  input_profil_pekerjaan: {
+    key: "input_profil_pekerjaan",
+    icon: "briefcase",
+    title: "Input Profil Tentang Mata Pencaharian",
+    description: "Form mengikuti tabel pekerjaan pada Access.",
+    fields: [
+      { label: "No", name: "no", type: "number", placeholder: "1" },
+      { label: "Pekerjaan", name: "pekerjaan", type: "text", placeholder: "Jenis pekerjaan" },
+      { label: "Jumlah", name: "jumlah", type: "text", placeholder: "Jumlah pekerja" }
+    ]
+  },
+  input_profil_agama: {
+    key: "input_profil_agama",
+    icon: "bookmark",
+    title: "Input Profil Tentang Agama",
+    description: "Form mengikuti tabel agama pada Access.",
+    fields: [
+      { label: "No", name: "no", type: "number", placeholder: "1" },
+      { label: "Agama", name: "agama", type: "text", placeholder: "Nama agama" },
+      { label: "Jumlah", name: "jumlah", type: "number", placeholder: "Jumlah penganut" }
+    ]
+  },
+  input_profil_infrastruktur: {
+    key: "input_profil_infrastruktur",
+    icon: "wrench",
+    title: "Input Profil Tentang Infrastruktur",
+    description: "Form mengikuti tabel jalan pada Access.",
+    fields: [
+      { label: "No", name: "no", type: "text", placeholder: "1" },
+      { label: "Jenis", name: "jenis", type: "text", placeholder: "Jenis infrastruktur" },
+      { label: "Uraian", name: "uraian", type: "text", placeholder: "Uraian" },
+      { label: "Baik", name: "baik", type: "number", placeholder: "Kondisi baik" },
+      { label: "Satuan Baik", name: "satuan_baik", type: "text", placeholder: "Satuan" },
+      { label: "Rusak", name: "rusak", type: "number", placeholder: "Kondisi rusak" },
+      { label: "Satuan Rusak", name: "satuan_rusak", type: "text", placeholder: "Satuan" },
+      { label: "Jumlah", name: "jumlah", type: "number", placeholder: "Total" },
+      { label: "Satuan", name: "satuan", type: "text", placeholder: "Satuan" }
+    ]
+  },
+  input_profil_irigasi: {
+    key: "input_profil_irigasi",
+    icon: "droplets",
+    title: "Input Profil Tentang Irigasi",
+    description: "Form mengikuti tabel irigasi pada Access.",
+    fields: [
+      { label: "No", name: "no", type: "text", placeholder: "1" },
+      { label: "Uraian", name: "uraian", type: "text", placeholder: "Uraian irigasi" },
+      { label: "Baik", name: "baik", type: "number", placeholder: "Kondisi baik" },
+      { label: "Rusak", name: "rusak", type: "number", placeholder: "Kondisi rusak" },
+      { label: "Jumlah", name: "jumlah", type: "number", placeholder: "Total" }
+    ]
+  },
+  input_profil_pemukiman: {
+    key: "input_profil_pemukiman",
+    icon: "home",
+    title: "Input Profil Tentang Pemukiman",
+    description: "Form mengikuti tabel RTLH pada Access.",
+    fields: [
+      { label: "No", name: "no", type: "text", placeholder: "1" },
+      { label: "Uraian", name: "uraian", type: "text", placeholder: "Uraian pemukiman" },
+      { label: "Baik", name: "baik", type: "number", placeholder: "Kondisi baik" },
+      { label: "Satuan Baik", name: "satuan_baik", type: "text", placeholder: "Satuan" },
+      { label: "Rusak", name: "rusak", type: "number", placeholder: "Kondisi rusak" },
+      { label: "Satuan Rusak", name: "satuan_rusak", type: "text", placeholder: "Satuan" },
+      { label: "Jumlah", name: "jumlah", type: "number", placeholder: "Total" },
+      { label: "Satuan", name: "satuan", type: "text", placeholder: "Satuan" }
+    ]
+  },
+  input_dusun: {
+    key: "input_dusun",
+    icon: "map-pin",
+    title: "Input Dusun",
+    description: "Form mengikuti tabel Dusun pada Access.",
+    fields: [
+      { label: "No", name: "no", type: "number", placeholder: "1" },
+      { label: "Nama Dusun", name: "nama_dusun", type: "text", placeholder: "Nama Dusun" },
+      { label: "Jumlah RW", name: "jumlah_rw", type: "number", placeholder: "Jumlah RW" },
+      { label: "Jumlah RT", name: "jumlah_rt", type: "number", placeholder: "Jumlah RT" },
+      { label: "Nama Kepala Dusun", name: "nama_kepala_dusun", type: "text", placeholder: "Nama Kepala Dusun" }
+    ]
+  },
+  input_sotk: {
+    key: "input_sotk",
+    icon: "network",
+    title: "Input SOTK",
+    description: "Form mengikuti tabel sotk pada Access.",
+    fields: [
+      { label: "No", name: "no", type: "number", placeholder: "1" },
+      { label: "Nama", name: "nama", type: "text", placeholder: "Nama lengkap" },
+      { label: "Jabatan", name: "jabatan", type: "text", placeholder: "Jabatan SOTK" }
+    ]
+  },
+  input_bpd: {
+    key: "input_bpd",
+    icon: "user-check",
+    title: "Input Data BPD",
+    description: "Form mengikuti tabel bpd pada Access.",
+    fields: [
+      { label: "No", name: "no", type: "number", placeholder: "1" },
+      { label: "Nama", name: "nama", type: "text", placeholder: "Nama lengkap" },
+      { label: "Jabatan", name: "jabatan", type: "text", placeholder: "Jabatan BPD" }
+    ]
+  },
+  input_profil_penduduk: {
+    key: "input_profil_penduduk",
+    icon: "trending-up",
+    title: "Input Profil Tentang Pertumbuhan Penduduk",
+    description: "Form mengikuti tabel pertumbuhan penduduk pada Access.",
+    fields: [
+      { label: "No", name: "no", type: "number", placeholder: "1" },
+      { label: "Kelompok Umur (Tahun)", name: "kelompok_umur", type: "text", placeholder: "Contoh: 0-4" },
+      { label: "Laki-Laki (jiwa)", name: "laki_laki", type: "number", placeholder: "Jumlah Laki-laki" },
+      { label: "Perempuan (jiwa)", name: "perempuan", type: "number", placeholder: "Jumlah Perempuan" },
+      { label: "Jumlah (Jiwa)", name: "jumlah", type: "number", placeholder: "Total" }
+    ]
+  },
+  input_data_dusun: {
+    key: "input_data_dusun",
+    icon: "map",
+    title: "Input Data Dusun",
+    description: "Form pendataan rinci untuk kependudukan per Dusun.",
+    fields: [
+      { label: "No", name: "no", type: "number", placeholder: "1" },
+      { label: "Nama Dusun", name: "nama_dusun", type: "text", placeholder: "Nama Dusun" },
+      { label: "Nama Ketua RT", name: "nama_ketua_rt", type: "text", placeholder: "Nama Ketua RT" },
+      { label: "Jumlah Penduduk (Laki-Laki)", name: "jml_l", type: "number", placeholder: "Jumlah L" },
+      { label: "Jumlah Penduduk (Perempuan)", name: "jml_p", type: "number", placeholder: "Jumlah P" }
+    ]
   },
   input_rktl: {
     key: "input_rktl",

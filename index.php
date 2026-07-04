@@ -616,7 +616,7 @@ $isAdminView = $currentView !== 'dashboard';
                 <a class="baru" href="#materialAutoForm" data-material-form="input_daftar_isi">Input Daftar Isi</a>
                 <a class="baru" href="#materialAutoForm" data-material-form="input_data_umum">Input Data Umum</a>
                 <a class="baru" href="#materialAutoForm" data-material-form="input_misi_desa">Input Misi Desa</a>
-                <a class="baru" href="#materialAutoForm" data-material-form="input_profil_desa">Input Profil Desa</a>
+                <a class="baru" href="#materialAutoForm" data-material-form="input_sejarah_desa">Input Profil Desa</a>
                 <a class="baru" href="#materialAutoForm" data-material-form="input_rktl">Input RKTL</a>
                 <a class="baru" href="#materialAutoForm" data-material-form="input_musdes">Input Musdes</a>
                 <a class="baru" href="#materialAutoForm" data-material-form="input_data_penting">Input Data Penting</a>
