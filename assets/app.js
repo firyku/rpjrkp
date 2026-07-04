@@ -645,6 +645,17 @@ function createMaterialField(field) {
 }
 
 function renderMaterialForm(formKey = "dashboard") {
+  const statGrid = document.querySelector(".material-stat-grid");
+  const chartGrid = document.querySelector(".material-chart-grid");
+  if (statGrid && chartGrid) {
+    if (formKey === "dashboard") {
+      statGrid.style.setProperty("display", "grid", "important");
+      chartGrid.style.setProperty("display", "grid", "important");
+    } else {
+      statGrid.style.setProperty("display", "none", "important");
+      chartGrid.style.setProperty("display", "none", "important");
+    }
+  }
   const template = materialFormTemplates[formKey] || materialFormTemplates.dashboard;
   if (!materialAutoForm || !template) return;
   currentMaterialFormKey = template.key;
