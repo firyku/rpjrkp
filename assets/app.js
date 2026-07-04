@@ -221,8 +221,7 @@ const materialFormTemplates = {
     title: "Input Misi Desa",
     description: "Form mengikuti tabel Access misi.",
     fields: [
-      { label: "No Urut", name: "no_urut", type: "number", placeholder: "1" },
-      { label: "Misi Desa", name: "misi_desa", type: "textarea", full: true, placeholder: "Tuliskan misi desa" },
+      { label: "Misi Desa", name: "misi_list", type: "mission_list", full: true },
     ],
   },
   input_profil_desa: {
@@ -622,8 +621,13 @@ function createMaterialField(field) {
   if (field.type === "textarea") {
     control = document.createElement("textarea");
     control.rows = 4;
+    control.name = field.name;
+    if (field.placeholder) control.placeholder = field.placeholder;
+    if (field.value) control.value = field.value;
+    label.append(control);
   } else if (field.type === "select") {
     control = document.createElement("select");
+    control.name = field.name;
     (field.options || []).forEach((optionLabel) => {
       const option = document.createElement("option");
       option.value = optionLabel;
@@ -631,15 +635,95 @@ function createMaterialField(field) {
       option.selected = optionLabel === field.value;
       control.append(option);
     });
+    label.append(control);
+  } else if (field.type === "mission_list") {
+    const container = document.createElement("div");
+    container.className = "mission-list-container";
+    container.style.cssText = "display: flex; flex-direction: column; gap: 16px; width: 100%; margin-top: 8px;";
+
+    const listWrapper = document.createElement("div");
+    listWrapper.className = "mission-list-wrapper";
+    listWrapper.style.cssText = "display: flex; flex-direction: column; gap: 12px; width: 100%;";
+    container.append(listWrapper);
+
+    const hiddenInput = document.createElement("input");
+    hiddenInput.type = "hidden";
+    hiddenInput.name = field.name;
+    hiddenInput.value = "-";
+    container.append(hiddenInput);
+
+    const updateHiddenValue = () => {
+      const rows = listWrapper.querySelectorAll(".mission-item-row");
+      const items = [];
+      rows.forEach(row => {
+        const noVal = row.querySelector(".mission-no").value.trim();
+        const txtVal = row.querySelector(".mission-text").value.trim();
+        if (noVal || txtVal) {
+          items.push(`${noVal}. ${txtVal}`);
+        }
+      });
+      hiddenInput.value = items.join(" | ") || "-";
+    };
+
+    const addMissionRow = (num = "", text = "") => {
+      const row = document.createElement("div");
+      row.className = "mission-item-row";
+      row.style.cssText = "display: flex; gap: 12px; align-items: center; width: 100%;";
+
+      const numInput = document.createElement("input");
+      numInput.type = "number";
+      numInput.placeholder = "No";
+      numInput.value = num;
+      numInput.style.cssText = "width: 70px; min-height: 44px; padding: 0 10px; border: 1px solid #d1d5db; outline: none; border-radius: 4px;";
+      numInput.className = "mission-no";
+      numInput.addEventListener("input", updateHiddenValue);
+
+      const textInput = document.createElement("textarea");
+      textInput.rows = 2;
+      textInput.placeholder = "Tuliskan misi desa";
+      textInput.value = text;
+      textInput.style.cssText = "flex: 1; min-height: 44px; padding: 10px; border: 1px solid #d1d5db; outline: none; resize: vertical; border-radius: 4px;";
+      textInput.className = "mission-text";
+      textInput.addEventListener("input", updateHiddenValue);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.innerHTML = '<i data-lucide="trash-2"></i>';
+      deleteBtn.className = "btn btn-outline-danger";
+      deleteBtn.style.cssText = "padding: 8px 12px; min-height: 44px; display: flex; align-items: center; justify-content: center;";
+      deleteBtn.addEventListener("click", () => {
+        row.remove();
+        updateHiddenValue();
+      });
+
+      row.append(numInput, textInput, deleteBtn);
+      listWrapper.append(row);
+      updateHiddenValue();
+      if (window.lucide) lucide.createIcons();
+    };
+
+    addMissionRow("1", "");
+
+    const addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.className = "btn btn-outline-primary align-self-start";
+    addBtn.style.cssText = "display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 16px;";
+    addBtn.innerHTML = '<i data-lucide="plus"></i> Tambah Misi';
+    addBtn.addEventListener("click", () => {
+      const nextNo = listWrapper.querySelectorAll(".mission-item-row").length + 1;
+      addMissionRow(String(nextNo), "");
+    });
+
+    container.append(addBtn);
+    label.append(container);
   } else {
     control = document.createElement("input");
     control.type = field.type || "text";
+    control.name = field.name;
+    if (field.placeholder) control.placeholder = field.placeholder;
+    if (field.value) control.value = field.value;
+    label.append(control);
   }
-
-  control.name = field.name;
-  if (field.placeholder) control.placeholder = field.placeholder;
-  if (field.value && field.type !== "select") control.value = field.value;
-  label.append(control);
 
   return label;
 }
