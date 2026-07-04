@@ -135,6 +135,7 @@ $isAdminView = $currentView !== 'dashboard';
         }
       })();
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= htmlspecialchars($appTitle, ENT_QUOTES, 'UTF-8') ?></title>
@@ -817,10 +818,21 @@ $isAdminView = $currentView !== 'dashboard';
                 <h2>Tabel yang berhasil di input</h2>
                 <p>Setiap data dari form otomatis masuk ke tabel ini setelah tombol Simpan Data ditekan.</p>
               </div>
-              <button class="material-clear-table" id="clearMaterialTable" type="button">
-                <i data-lucide="trash-2"></i>
-                Hapus Tabel
-              </button>
+              <div class="material-table-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="file" id="importExcelFile" accept=".xlsx, .xls, .csv" style="display: none;">
+                <button class="btn btn-outline-success" id="importExcelBtn" type="button" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 16px;">
+                  <i data-lucide="upload"></i>
+                  Import Excel
+                </button>
+                <button class="btn btn-outline-primary" id="exportExcelBtn" type="button" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 16px;">
+                  <i data-lucide="download"></i>
+                  Export Excel
+                </button>
+                <button class="material-clear-table" id="clearMaterialTable" type="button">
+                  <i data-lucide="trash-2"></i>
+                  Hapus Tabel
+                </button>
+              </div>
             </div>
             <div class="material-table-wrap">
               <table class="material-result-table">

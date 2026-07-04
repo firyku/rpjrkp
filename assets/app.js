@@ -1040,11 +1040,32 @@ function renderMaterialForm(formKey = "dashboard") {
 
   const actions = document.createElement("div");
   actions.className = "material-form-actions span-2";
+  actions.style.cssText = "display: flex; gap: 12px; align-items: center; flex-wrap: wrap;";
   actions.innerHTML = `
-    <button type="submit"><i data-lucide="save"></i>Simpan Data</button>
-    <button type="reset"><i data-lucide="rotate-ccw"></i>Reset</button>
+    <button type="submit" id="materialFormSubmitBtn" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 12px 24px; min-height: 48px;"><i data-lucide="save"></i>Simpan Data</button>
+    <button type="button" id="materialFormAddBtn" class="btn btn-success" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 12px 24px; min-height: 48px;"><i data-lucide="plus-circle"></i>Tambah Baru</button>
+    <button type="reset" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 12px 24px; min-height: 48px;"><i data-lucide="rotate-ccw"></i>Reset</button>
   `;
   materialAutoForm.append(actions);
+
+  // Set listener for Tambah Baru button
+  const formAddBtn = actions.querySelector("#materialFormAddBtn");
+  formAddBtn?.addEventListener("click", () => {
+    materialAutoForm.reset();
+    editingMaterialRowId = null;
+
+    const mContainer = materialAutoForm.querySelector(".mission-list-container");
+    if (mContainer && mContainer.addMissionRow) {
+      const listWrapper = mContainer.querySelector(".mission-list-wrapper");
+      listWrapper.innerHTML = "";
+      mContainer.addMissionRow("1", "");
+    }
+
+    const submitBtn = actions.querySelector("#materialFormSubmitBtn");
+    if (submitBtn) {
+      submitBtn.innerHTML = '<i data-lucide="save"></i>Simpan Data';
+    }
+  });
 
   if (window.lucide) {
     lucide.createIcons();
@@ -1758,3 +1779,91 @@ if (window.bootstrap) {
 if (window.lucide) {
   lucide.createIcons();
 }
+
+// --- EXCEL IMPORT / EXPORT LOGIC ---
+const exportExcelBtn = document.querySelector("#exportExcelBtn");
+const importExcelBtn = document.querySelector("#importExcelBtn");
+const importExcelFile = document.querySelector("#importExcelFile");
+
+exportExcelBtn?.addEventListener("click", () => {
+  const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
+  const filteredRows = materialSavedRows.filter(row => row.formKey === currentMaterialFormKey || row.form === template.title);
+  if (filteredRows.length === 0) {
+    alert("Tidak ada data untuk diexport!");
+    return;
+  }
+
+  const data = filteredRows.map((row, index) => {
+    const item = { "No": index + 1 };
+    template.fields.forEach(field => {
+      const valObj = row.values ? row.values.find(v => v.name === field.name || v.label === field.label) : null;
+      item[field.label] = valObj ? valObj.value : "-";
+    });
+    return item;
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Data Tersimpan");
+  XLSX.writeFile(workbook, data_.xlsx);
+});
+
+importExcelBtn?.addEventListener("click", () => {
+  importExcelFile?.click();
+});
+
+importExcelFile?.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      const data = new Uint8Array(evt.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json(worksheet);
+
+      const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
+      const createdAt = new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(new Date());
+
+      json.forEach((item) => {
+        const values = [];
+        template.fields.forEach(field => {
+          const val = item[field.label] !== undefined ? String(item[field.label]) : "-";
+          values.push({
+            label: field.label,
+            name: field.name,
+            value: val
+          });
+        });
+
+        materialSavedRows.unshift({
+          id: ${Date.now()}-,
+          module: activeMaterialModule.title,
+          form: template.title,
+          formKey: currentMaterialFormKey,
+          summary: summarizeMaterialValues(values),
+          status: "Berhasil di input",
+          createdAt,
+          values
+        });
+      });
+
+      saveMaterialRows();
+      renderMaterialResultTable();
+      importExcelFile.value = "";
+      alert(Berhasil mengimport  baris data!);
+    } catch(err) {
+      alert("Format berkas Excel tidak sesuai / gagal di-import!");
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
