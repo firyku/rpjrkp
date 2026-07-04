@@ -1102,15 +1102,11 @@ function renderMaterialResultTable() {
   tableHeader.innerHTML = "";
   const headerRow = document.createElement("tr");
   
-  const headers = ["No"];
-  if (currentMaterialFormKey === "dashboard") {
-    headers.push("Modul", "Form", "Ringkasan Input");
-  } else {
-    template.fields.forEach(field => {
-      headers.push(field.label);
-    });
-  }
-  headers.push("Status", "Waktu", "Aksi");
+  const headers = [];
+  template.fields.forEach(field => {
+    headers.push(field.label);
+  });
+  headers.push("Aksi");
 
   headers.forEach(hText => {
     const th = document.createElement("th");
@@ -1129,38 +1125,19 @@ function renderMaterialResultTable() {
     return;
   }
 
-  filteredRows.forEach((row, index) => {
+  filteredRows.forEach((row) => {
     const tableRow = document.createElement("tr");
 
-    const noCell = document.createElement("td");
-    noCell.textContent = index + 1;
-    tableRow.append(noCell);
-
-    if (currentMaterialFormKey === "dashboard") {
-      [row.module, row.form, row.summary].forEach(val => {
-        const cell = document.createElement("td");
-        cell.textContent = val;
-        tableRow.append(cell);
-      });
-    } else {
-      template.fields.forEach(field => {
-        const cell = document.createElement("td");
-        const valObj = row.values ? row.values.find(v => v.name === field.name || v.label === field.label) : null;
-        cell.textContent = valObj ? valObj.value : "-";
-        tableRow.append(cell);
-      });
-    }
-
-    const statusCell = document.createElement("td");
-    const statusBadge = document.createElement("span");
-    statusBadge.className = "material-status-badge";
-    statusBadge.textContent = row.status;
-    statusCell.append(statusBadge);
-    tableRow.append(statusCell);
-
-    const timeCell = document.createElement("td");
-    timeCell.textContent = row.createdAt;
-    tableRow.append(timeCell);
+    template.fields.forEach(field => {
+      const cell = document.createElement("td");
+      let val = "-";
+      if (row.values) {
+        const valObj = row.values.find(v => v.name === field.name || v.label === field.label);
+        if (valObj) val = valObj.value;
+      }
+      cell.textContent = val;
+      tableRow.append(cell);
+    });
 
     const actionCell = document.createElement("td");
     const deleteButton = document.createElement("button");
