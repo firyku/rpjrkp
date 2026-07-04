@@ -1046,6 +1046,9 @@ function renderMaterialForm(formKey = "dashboard") {
   if (window.lucide) {
     lucide.createIcons();
   }
+
+  // Update the result table headers & rows instantly to match the active form
+  renderMaterialResultTable();
 }
 
 function getMaterialFormValues() {
