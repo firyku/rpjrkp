@@ -696,6 +696,7 @@ function getMaterialFormValues() {
     if (!control) return;
     values.push({
       label: field.label,
+      name: field.name,
       value: String(control.value || "").trim() || "-",
     });
   });
@@ -728,24 +729,63 @@ function loadMaterialRows() {
 }
 
 function renderMaterialResultTable() {
-  if (!materialResultRows) return;
+  const tableHeader = document.querySelector(".material-result-table thead");
+  if (!materialResultRows || !tableHeader) return;
+
+  const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
+  const filteredRows = materialSavedRows.filter(row => row.formKey === currentMaterialFormKey || row.form === template.title);
+
+  tableHeader.innerHTML = "";
+  const headerRow = document.createElement("tr");
+  
+  const headers = ["No"];
+  if (currentMaterialFormKey === "dashboard") {
+    headers.push("Modul", "Form", "Ringkasan Input");
+  } else {
+    template.fields.forEach(field => {
+      headers.push(field.label);
+    });
+  }
+  headers.push("Status", "Waktu", "Aksi");
+
+  headers.forEach(hText => {
+    const th = document.createElement("th");
+    th.textContent = hText;
+    headerRow.append(th);
+  });
+  tableHeader.append(headerRow);
+
   materialResultRows.innerHTML = "";
 
-  if (materialSavedRows.length === 0) {
+  if (filteredRows.length === 0) {
     const emptyRow = document.createElement("tr");
     emptyRow.className = "material-empty-row";
-    emptyRow.innerHTML = '<td colspan="7">Belum ada data yang berhasil di input.</td>';
+    emptyRow.innerHTML = `<td colspan="${headers.length}">Belum ada data yang berhasil di input untuk form ini.</td>`;
     materialResultRows.append(emptyRow);
     return;
   }
 
-  materialSavedRows.forEach((row, index) => {
+  filteredRows.forEach((row, index) => {
     const tableRow = document.createElement("tr");
-    [index + 1, row.module, row.form, row.summary].forEach((value) => {
-      const cell = document.createElement("td");
-      cell.textContent = value;
-      tableRow.append(cell);
-    });
+
+    const noCell = document.createElement("td");
+    noCell.textContent = index + 1;
+    tableRow.append(noCell);
+
+    if (currentMaterialFormKey === "dashboard") {
+      [row.module, row.form, row.summary].forEach(val => {
+        const cell = document.createElement("td");
+        cell.textContent = val;
+        tableRow.append(cell);
+      });
+    } else {
+      template.fields.forEach(field => {
+        const cell = document.createElement("td");
+        const valObj = row.values ? row.values.find(v => v.name === field.name || v.label === field.label) : null;
+        cell.textContent = valObj ? valObj.value : "-";
+        tableRow.append(cell);
+      });
+    }
 
     const statusCell = document.createElement("td");
     const statusBadge = document.createElement("span");
@@ -767,6 +807,7 @@ function renderMaterialResultTable() {
     deleteButton.innerHTML = '<i data-lucide="trash-2"></i>';
     actionCell.append(deleteButton);
     tableRow.append(actionCell);
+
     materialResultRows.append(tableRow);
   });
 
@@ -790,6 +831,7 @@ function addMaterialResultRow() {
     id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     module: activeMaterialModule.title,
     form: template.title,
+    formKey: currentMaterialFormKey,
     summary: summarizeMaterialValues(values),
     status: "Berhasil di input",
     createdAt,
