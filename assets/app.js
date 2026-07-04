@@ -882,7 +882,61 @@ function createMaterialField(field) {
   return label;
 }
 
+const profilSubForms = [
+  { key: "input_sejarah_desa", label: "INPUT SEJARAH DESA", icon: "book-open" },
+  { key: "input_sejarah_kades", label: "SEJARAH JABATAN KEPALA DESA", icon: "users" },
+  { key: "input_profil_pendidikan", label: "INPUT PROFIL TENTANG PENDIDIKAN", icon: "graduation-cap" },
+  { key: "input_profil_kesehatan", label: "INPUT PROFIL TENTANG KESEHATAN", icon: "activity" },
+  { key: "input_profil_pekerjaan", label: "INPUT PROFIL TENTANG MATA PENCAHARIAN", icon: "briefcase" },
+  { key: "input_profil_agama", label: "INPUT PROFIL TENTANG AGAMA", icon: "bookmark" },
+  { key: "input_profil_infrastruktur", label: "INPUT PROFIL TENTANG INFRASTRUKTUR", icon: "wrench" },
+  { key: "input_profil_irigasi", label: "INPUT PROFIL TENTANG IRIGASI", icon: "droplets" },
+  { key: "input_profil_pemukiman", label: "INPUT PROFIL TENTANG PEMUKIMAN", icon: "home" },
+  { key: "input_dusun", label: "INPUT DUSUN", icon: "map-pin" },
+  { key: "input_sotk", label: "INPUT SOTK", icon: "network" },
+  { key: "input_bpd", label: "INPUT DATA BPD", icon: "user-check" },
+  { key: "input_profil_penduduk", label: "INPUT PROFIL TENTANG PERTUMBUHAN PENDUDUK", icon: "trending-up" },
+  { key: "input_data_dusun", label: "INPUT DATA DUSUN", icon: "map" }
+];
+
 function renderMaterialForm(formKey = "dashboard") {
+  if (formKey === "input_profil_desa") {
+    formKey = "input_sejarah_desa";
+  }
+
+  // Render sub-sidebar / wizard horizontal (Gaya Gambar #2)
+  const isProfilForm = profilSubForms.some(sf => sf.key === formKey);
+  let wizardContainer = document.querySelector(".material-wizard");
+  
+  if (isProfilForm) {
+    if (!wizardContainer) {
+      wizardContainer = document.createElement("div");
+      wizardContainer.className = "material-wizard";
+      const header = document.querySelector(".material-form-header");
+      if (header) {
+        header.parentNode.insertBefore(wizardContainer, header.nextSibling);
+      }
+    }
+    
+    wizardContainer.innerHTML = "";
+    profilSubForms.forEach(sf => {
+      const step = document.createElement("a");
+      step.className = `wizard-step ${sf.key === formKey ? "active" : ""}`;
+      step.innerHTML = `
+        <div class="wizard-icon"><i data-lucide="${sf.icon}"></i></div>
+        <div class="wizard-label">${sf.label}</div>
+      `;
+      step.addEventListener("click", (e) => {
+        e.preventDefault();
+        renderMaterialForm(sf.key);
+      });
+      wizardContainer.append(step);
+    });
+  } else {
+    if (wizardContainer) {
+      wizardContainer.remove();
+    }
+  }
   const statGrid = document.querySelector(".material-stat-grid");
   const chartGrid = document.querySelector(".material-chart-grid");
   if (statGrid && chartGrid) {
