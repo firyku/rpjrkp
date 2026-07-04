@@ -2731,11 +2731,6 @@ body {
   gap: 15px !important;
 }
 
-/* Sembunyikan brand di sidebar agar sesuai Gambar #2 */
-.material-brand, .sidebar .brand, .sidebar .notice-card {
-  display: none !important;
-}
-
 /* Jarak antar menu dibuat lebih renggang */
 .material-menu, .side-nav {
   display: grid !important;
