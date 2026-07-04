@@ -2828,7 +2828,7 @@ details[open] > summary svg {
 }
 
 /* Badge BARU berwarna hijau/kuning kapsul */
-.material-submenu a::after {
+.material-submenu a.baru::after {
   content: 'BARU' !important;
   background-color: #84cc16 !important;
   color: #002d2e !important;
