@@ -829,7 +829,7 @@ function createMaterialField(field) {
       updateHiddenValue();
       if (window.lucide) lucide.createIcons();
     };
-    container.addParagraphRow = addParagraphRow;
+    container.addMissionRow = addMissionRow;
 
     const initialText = field.value || "";
     if (initialText && initialText !== "-") {
@@ -926,7 +926,7 @@ function createMaterialField(field) {
       updateHiddenValue();
       if (window.lucide) lucide.createIcons();
     };
-    container.addParagraphRow = addParagraphRow;
+    container.addMissionRow = addMissionRow;
 
     addMissionRow("1", "");
 
@@ -1179,6 +1179,21 @@ function renderMaterialResultTable() {
             }
           });
         }
+
+        const mContainer = materialAutoForm.querySelector(`[name="${field.name}"]`)?.closest(".mission-list-container");
+        if (mContainer && val && val !== "-") {
+          const listWrapper = mContainer.querySelector(".mission-list-wrapper");
+          listWrapper.innerHTML = "";
+          const missions = val.split(" | ");
+          missions.forEach(m => {
+            const parts = m.split(". ");
+            const num = parts[0] || "";
+            const text = parts.slice(1).join(". ") || "";
+            if (mContainer.addMissionRow) {
+              mContainer.addMissionRow(num, text);
+            }
+          });
+        }
       });
       document.querySelector("#materialAutoForm")?.scrollIntoView({ behavior: "smooth" });
     });
@@ -1192,6 +1207,14 @@ function renderMaterialResultTable() {
     tambahButton.addEventListener("click", () => {
       materialAutoForm.reset();
       editingMaterialRowId = null;
+      
+      const mContainer = materialAutoForm.querySelector(".mission-list-container");
+      if (mContainer && mContainer.addMissionRow) {
+        const listWrapper = mContainer.querySelector(".mission-list-wrapper");
+        listWrapper.innerHTML = "";
+        mContainer.addMissionRow("1", "");
+      }
+      
       const submitBtn = materialAutoForm.querySelector('[type="submit"]');
       if (submitBtn) {
         submitBtn.innerHTML = '<i data-lucide="save"></i>Simpan Data';
