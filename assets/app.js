@@ -773,12 +773,81 @@ function createMaterialField(field) {
 
   let control;
   if (field.type === "textarea") {
-    control = document.createElement("textarea");
-    control.rows = 4;
-    control.name = field.name;
-    if (field.placeholder) control.placeholder = field.placeholder;
-    if (field.value) control.value = field.value;
-    label.append(control);
+    const container = document.createElement("div");
+    container.className = "paragraph-list-container";
+    container.style.cssText = "display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 8px;";
+
+    const listWrapper = document.createElement("div");
+    listWrapper.className = "paragraph-list-wrapper";
+    listWrapper.style.cssText = "display: flex; flex-direction: column; gap: 8px; width: 100%;";
+    container.append(listWrapper);
+
+    const hiddenInput = document.createElement("input");
+    hiddenInput.type = "hidden";
+    hiddenInput.name = field.name;
+    hiddenInput.value = field.value || "-";
+    container.append(hiddenInput);
+
+    const updateHiddenValue = () => {
+      const textareas = listWrapper.querySelectorAll(".paragraph-text");
+      const items = [];
+      textareas.forEach(ta => {
+        const val = ta.value.trim();
+        if (val) {
+          items.push(val);
+        }
+      });
+      hiddenInput.value = items.join("\n\n") || "-";
+    };
+
+    const addParagraphRow = (text = "") => {
+      const row = document.createElement("div");
+      row.className = "paragraph-item-row";
+      row.style.cssText = "display: flex; gap: 10px; align-items: center; width: 100%;";
+
+      const textInput = document.createElement("textarea");
+      textInput.rows = 2;
+      textInput.placeholder = field.placeholder || "Tuliskan paragraf...";
+      textInput.value = text;
+      textInput.style.cssText = "flex: 1; min-height: 50px; padding: 8px; border: 1px solid #d1d5db; outline: none; resize: vertical; border-radius: 4px;";
+      textInput.className = "paragraph-text";
+      textInput.addEventListener("input", updateHiddenValue);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.innerHTML = '<i data-lucide="trash-2"></i>';
+      deleteBtn.className = "btn btn-outline-danger";
+      deleteBtn.style.cssText = "padding: 6px 10px; min-height: 40px; display: flex; align-items: center; justify-content: center;";
+      deleteBtn.addEventListener("click", () => {
+        row.remove();
+        updateHiddenValue();
+      });
+
+      row.append(textInput, deleteBtn);
+      listWrapper.append(row);
+      updateHiddenValue();
+      if (window.lucide) lucide.createIcons();
+    };
+
+    const initialText = field.value || "";
+    if (initialText && initialText !== "-") {
+      const paragraphs = initialText.split(/\n\n+/);
+      paragraphs.forEach(p => addParagraphRow(p));
+    } else {
+      addParagraphRow("");
+    }
+
+    const addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.className = "btn btn-outline-primary align-self-start";
+    addBtn.style.cssText = "display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; padding: 6px 12px;";
+    addBtn.innerHTML = '<i data-lucide="plus"></i> Tambah Paragraf';
+    addBtn.addEventListener("click", () => {
+      addParagraphRow("");
+    });
+
+    container.append(addBtn);
+    label.append(container);
   } else if (field.type === "select") {
     control = document.createElement("select");
     control.name = field.name;
