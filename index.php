@@ -608,7 +608,7 @@ $isAdminView = $currentView !== 'dashboard';
           </div>
           <?php if ($currentView === 'rpjmdesa'): ?>
           <nav class="material-menu" aria-label="Sub menu <?= htmlspecialchars($activeAdmin['title'], ENT_QUOTES, 'UTF-8') ?>">
-            <a class="active material-menu-root" href="#materialAutoForm" data-material-form="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+            <a class="material-menu-root" href="?view=dashboard&v=<?= htmlspecialchars($cacheVersion, ENT_QUOTES, 'UTF-8') ?>#overview"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
 
             <details class="material-menu-group" open>
               <summary><i data-lucide="database"></i><span>Input Data</span></summary>
@@ -683,7 +683,7 @@ $isAdminView = $currentView !== 'dashboard';
           </nav>
           <?php else: ?>
           <nav class="material-menu" aria-label="Sub menu <?= htmlspecialchars($activeAdmin['title'], ENT_QUOTES, 'UTF-8') ?>">
-            <a class="active" href="#materialAutoForm" data-material-form="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+            <a href="?view=dashboard&v=<?= htmlspecialchars($cacheVersion, ENT_QUOTES, 'UTF-8') ?>#overview"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
             <a href="#materialAutoForm" data-material-form="profile"><i data-lucide="user"></i><span>Profil Dokumen</span></a>
             <a href="#materialAutoForm" data-material-form="table"><i data-lucide="clipboard-list"></i><span>Daftar Program</span></a>
             <a href="#materialAutoForm" data-material-form="typography"><i data-lucide="file-text"></i><span>Bidang Kegiatan</span></a>
