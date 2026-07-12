@@ -79,7 +79,7 @@ if (($_GET['action'] ?? '') === 'logout') {
     exit;
 }
 
-$cacheVersion = 'apdi-10';
+$cacheVersion = 'apdi-27';
 $adminPages = [
     'rpjmdesa' => [
         'title' => 'RPJMDesa',
@@ -125,17 +125,6 @@ $isAdminView = $currentView !== 'dashboard';
 <!doctype html>
 <html lang="id">
   <head>
-    <script>
-      (function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const v = urlParams.get('v');
-        if (v && v !== 'apdi-10') {
-          urlParams.set('v', 'apdi-10');
-          window.location.search = urlParams.toString();
-        }
-      })();
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= htmlspecialchars($appTitle, ENT_QUOTES, 'UTF-8') ?></title>
@@ -143,8 +132,11 @@ $isAdminView = $currentView !== 'dashboard';
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css?v=<?= htmlspecialchars($cacheVersion, ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="assets/styles.css?v=<?= htmlspecialchars($cacheVersion, ENT_QUOTES, 'UTF-8') ?>">
     <?php if (!$isLoggedIn): ?>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -209,6 +201,17 @@ $isAdminView = $currentView !== 'dashboard';
 
       <main class="main-content">
         <header class="topbar">
+          <?php if ($isAdminView): ?>
+          <a class="template-verify" href="#" aria-label="Verifikasi Email Anda">
+            <i data-lucide="badge-alert"></i>
+            <span>Verifikasi Email Anda</span>
+          </a>
+          <div class="template-account" aria-label="Akun pengguna">
+            <i data-lucide="user-round"></i>
+            <span>Koperasi Desa Merah Putih Gendayakan Kecamatan Paranggupito Kabupaten Wonogiri</span>
+            <i data-lucide="chevron-down"></i>
+          </div>
+          <?php elseif ($currentView === 'rkpdesa'): ?>
           <label class="search-field">
             <i data-lucide="search"></i>
             <input id="activitySearch" type="search" placeholder="Cari dokumen, program, lokasi" aria-label="Cari dokumen">
@@ -225,6 +228,7 @@ $isAdminView = $currentView !== 'dashboard';
             <i data-lucide="log-out"></i>
             Keluar
           </a>
+          <?php endif; ?>
         </header>
 
       <?php if (!$isAdminView): ?>
@@ -250,8 +254,15 @@ $isAdminView = $currentView !== 'dashboard';
             </button>
           </div>
         </div>
-        <div class="hero-media" aria-label="Banner APDI">
-          <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80" alt="Pemandangan desa dan area persawahan">
+        <div class="hero-media" aria-label="Video banner APDI">
+          <video id="heroDreaminaVideo" autoplay muted loop playsinline controls preload="auto" aria-label="Video pemandangan desa untuk banner APDI">
+            <source src="assets/hero-dreamina.mp4" type="video/mp4">
+            Browser Anda tidak mendukung pemutar video.
+          </video>
+          <button class="hero-sound-toggle" id="heroSoundToggle" type="button" aria-pressed="false" aria-label="Nyalakan suara video">
+            <i data-lucide="volume-x"></i>
+            <span>Suara mati</span>
+          </button>
           <div class="hero-stat">
             <strong>73</strong>
             <span>Dokumen aktif</span>
@@ -474,7 +485,7 @@ $isAdminView = $currentView !== 'dashboard';
               <table class="material-result-table">
                 <thead>
                   <tr>
-                    <th>No</th>
+                    <th>No. Tabel</th>
                     <th>Desa</th>
                     <th>Kecamatan</th>
                     <th>Kabupaten</th>
@@ -621,16 +632,16 @@ $isAdminView = $currentView !== 'dashboard';
           <nav class="material-menu" aria-label="Sub menu <?= htmlspecialchars($activeAdmin['title'], ENT_QUOTES, 'UTF-8') ?>">
             <a class="material-menu-root" href="?view=dashboard&v=<?= htmlspecialchars($cacheVersion, ENT_QUOTES, 'UTF-8') ?>#overview"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
 
-            <details class="material-menu-group" open>
+            <details class="material-menu-group">
               <summary><i data-lucide="database"></i><span>Input Data</span></summary>
               <div class="material-submenu">
-                <a class="baru" href="#materialAutoForm" data-material-form="input_daftar_isi">Input Daftar Isi</a>
-                <a class="baru" href="#materialAutoForm" data-material-form="input_data_umum">Input Data Umum</a>
-                <a class="baru" href="#materialAutoForm" data-material-form="input_misi_desa">Input Misi Desa</a>
-                <a class="baru" href="#materialAutoForm" data-material-form="input_sejarah_desa">Input Profil Desa</a>
-                <a class="baru" href="#materialAutoForm" data-material-form="input_rktl">Input RKTL</a>
-                <a class="baru" href="#materialAutoForm" data-material-form="input_musdes">Input Musdes</a>
-                <a class="baru" href="#materialAutoForm" data-material-form="input_data_penting">Input Data Penting</a>
+                <a href="#materialAutoForm" data-material-form="input_daftar_isi">Input Daftar Isi</a>
+                <a href="#materialAutoForm" data-material-form="input_data_umum">Input Data Umum</a>
+                <a href="#materialAutoForm" data-material-form="input_misi_desa">Input Misi Desa</a>
+                <a href="#materialAutoForm" data-material-form="input_profil_desa">Input Profil Desa</a>
+                <a href="#materialAutoForm" data-material-form="input_rktl">Input RKTL</a>
+                <a href="#materialAutoForm" data-material-form="input_musdes">Input Musdes</a>
+                <a href="#materialAutoForm" data-material-form="input_sejarah_desa">Input Sejarah Desa</a>
               </div>
             </details>
 
@@ -640,7 +651,10 @@ $isAdminView = $currentView !== 'dashboard';
                 <a href="#materialAutoForm" data-material-form="input_renc_pendapatan">Input Renc Pendapatan</a>
                 <a href="#materialAutoForm" data-material-form="input_matrik">Input Matrik</a>
                 <a href="#materialAutoForm" data-material-form="input_musdus_kelompok">Mudus/Kelompok</a>
-                <a href="#materialAutoForm" data-material-form="program_masuk_desa">Program Masuk Desa</a>
+                <a href="#materialAutoForm" data-material-form="sketsa_desa">Sketsa Desa</a>
+                <a href="#materialAutoForm" data-material-form="bagan_kelembagaan_input">Bagan Kelembagaan</a>
+                <a href="#materialAutoForm" data-material-form="kalender_musim">Kalender Musim</a>
+                <a href="#materialAutoForm" data-material-form="arah_kebijakan">Arah Kebijakan</a>
               </div>
             </details>
 
@@ -689,18 +703,145 @@ $isAdminView = $currentView !== 'dashboard';
                 <a href="#materialAutoForm" data-material-form="rancangan_rpjmdesa">Rancangan RPJMDesa</a>
                 <a href="#materialAutoForm" data-material-form="dok_visi_misi_kades">Dok. Visi Misi Kades</a>
                 <a href="#materialAutoForm" data-material-form="dok_pokok_pikiran_bpd">Dok. Pokok Pikiran BPD</a>
+                <a href="#materialAutoForm" data-material-form="inventaris_masalah">Daftar Inventaris Masalah</a>
+                <a href="#materialAutoForm" data-material-form="inventaris_potensi">Daftar Inventaris Potensi</a>
+                <a href="#materialAutoForm" data-material-form="pengkajian_tindakan">Pengkajian Tindakan Pemecahan Masalah</a>
+                <a href="#materialAutoForm" data-material-form="penentuan_tindakan">Penentuan Tindakan Masalah</a>
+                <a href="#materialAutoForm" data-material-form="input_prioritas">Penentuan Peringkat Tindakan</a>
+                <a href="#materialAutoForm" data-material-form="gagasan_dusun">Daftar Gagasan Dusun/Kelompok</a>
+                <a href="#materialAutoForm" data-material-form="rekap_gagasan_dusun">Rekapitulasi Gagasan Dusun/Kelompok</a>
+                <a href="#materialAutoForm" data-material-form="sketsa_desa_laporan">Sketsa Desa</a>
+                <a href="#materialAutoForm" data-material-form="kalender_musim_laporan">Kalender Musim</a>
+                <a href="#materialAutoForm" data-material-form="ba_musrenbangdes">BA Musrenbangdes</a>
+                <a href="#materialAutoForm" data-material-form="ba_penetapan">BA Pembahasan/Penetapan</a>
+              </div>
+            </details>
+          </nav>
+          <?php elseif ($currentView === 'rkpdesa'): ?>
+          <nav class="material-menu" aria-label="Sub menu <?= htmlspecialchars($activeAdmin['title'], ENT_QUOTES, 'UTF-8') ?>">
+            <a class="material-menu-root" href="?view=dashboard&v=<?= htmlspecialchars($cacheVersion, ENT_QUOTES, 'UTF-8') ?>#overview"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+            <details class="material-menu-group">
+              <summary><i data-lucide="database"></i><span>Input Data</span></summary>
+              <div class="material-submenu">
+                <a href="#materialAutoForm" data-material-form="rkp_daftar_isi">Input Daftar Isi</a>
+                <a href="#materialAutoForm" data-material-form="rkp_data_umum">Input Data Umum</a>
+                <a href="#materialAutoForm" data-material-form="rkp_misi_desa">Input Misi Desa</a>
+                <a href="#materialAutoForm" data-material-form="rkp_profil_desa">Input Profil Desa</a>
+                <a href="#materialAutoForm" data-material-form="rkp_ba_tim_input">Input BA Tim</a>
+              </div>
+            </details>
+            <details class="material-menu-group">
+              <summary><i data-lucide="wallet-cards"></i><span>Input Keuangan</span></summary>
+              <div class="material-submenu">
+                <a href="#materialAutoForm" data-material-form="rkp_pendapatan">Input Rencana Pendapatan</a>
+              </div>
+            </details>
+            <details class="material-menu-group">
+              <summary><i data-lucide="scan-search"></i><span>Pencermatan RPJMDesa</span></summary>
+              <div class="material-submenu">
+                <a href="#materialAutoForm" data-material-form="rkp_input_masalah">Input Masalah</a>
+                <a href="#materialAutoForm" data-material-form="rkp_rekomendasi_sdgs">Input Rekomendasi SDGs</a>
+              </div>
+            </details>
+            <details class="material-menu-group">
+              <summary><i data-lucide="history"></i><span>Evaluasi RKPDesa Sebelumnya</span></summary>
+              <div class="material-submenu">
+                <a href="#materialAutoForm" data-material-form="rkp_evaluasi_sebelumnya">Evaluasi RKPDesa Sebelumnya</a>
+              </div>
+            </details>
+            <details class="material-menu-group">
+              <summary><i data-lucide="users-round"></i><span>Input Tim Penyusun</span></summary>
+              <div class="material-submenu">
+                <a href="#materialAutoForm" data-material-form="rkp_tim_penyusun">Susunan Tim Penyusun</a>
+              </div>
+            </details>
+            <details class="material-menu-group">
+              <summary><i data-lucide="scroll-text"></i><span>Dasar Hukum</span></summary>
+              <div class="material-submenu">
+                <a href="#materialAutoForm" data-material-form="rkp_dasar_hukum_perdes">Dasar Hukum Perdes</a>
+                <a href="#materialAutoForm" data-material-form="rkp_dasar_hukum_sk">Dasar Hukum SK Tim</a>
+              </div>
+            </details>
+            <details class="material-menu-group">
+              <summary><i data-lucide="book-open-text"></i><span>Uraian Perdes</span></summary>
+              <div class="material-submenu"><a href="#materialAutoForm" data-material-form="rkp_ketentuan_umum">Isi Ketentuan Umum Perdes</a></div>
+            </details>
+            <details class="material-menu-group">
+              <summary><i data-lucide="notebook-tabs"></i><span>Rancangan RKPDesa</span></summary>
+              <div class="material-submenu"><a href="#materialAutoForm" data-material-form="rkp_rancangan_kegiatan">Rancangan RKPDesa</a></div>
+            </details>
+            <details class="material-menu-group">
+              <summary><i data-lucide="landmark"></i><span>Kebijakan Pembiayaan</span></summary>
+              <div class="material-submenu"><a href="#materialAutoForm" data-material-form="rkp_pembiayaan">Kebijakan Pembiayaan</a></div>
+            </details>
+            <details class="material-menu-group">
+              <summary><i data-lucide="files"></i><span>Laporan</span></summary>
+              <div class="material-submenu">
+                <a href="#materialAutoForm" data-material-form="rkp_cover">Cover RKPDesa</a>
+                <a href="#materialAutoForm" data-material-form="rkp_pendahuluan">Pendahuluan</a>
+                <a href="#materialAutoForm" data-material-form="rkp_laporan_daftar_isi">Daftar Isi</a>
+                <a href="#materialAutoForm" data-material-form="rkp_bab_1">BAB I</a>
+                <a href="#materialAutoForm" data-material-form="rkp_bab_2">BAB II</a>
+                <a href="#materialAutoForm" data-material-form="rkp_bab_3">BAB III</a>
+                <a href="#materialAutoForm" data-material-form="rkp_bab_4">BAB IV</a>
+                <a href="#materialAutoForm" data-material-form="rkp_bab_5">BAB V</a>
+                <a href="#materialAutoForm" data-material-form="rkp_checklist">Checklist</a>
+                <a href="#materialAutoForm" data-material-form="rkp_perdes">Perdes RKPDesa</a>
+                <a href="#materialAutoForm" data-material-form="rkp_sk_tim">SK Tim Penyusun</a>
+                <a href="#materialAutoForm" data-material-form="rkp_ba_tim">BA Pembentukan Tim</a>
+                <a href="#materialAutoForm" data-material-form="rkp_daftar_hadir">Daftar Hadir</a>
+                <a href="#materialAutoForm" data-material-form="rkp_program_masuk">Program Masuk Desa</a>
+                <a href="#materialAutoForm" data-material-form="rkp_rktl">RKTL</a>
+                <a href="#materialAutoForm" data-material-form="rkp_musdes">Musdes</a>
+                <a href="#materialAutoForm" data-material-form="rkp_prioritas">Prioritas Program</a>
+                <a href="#materialAutoForm" data-material-form="rkp_usulan_sdgs">Usulan Masyarakat Berdasarkan SDGs Desa</a>
+                <a href="#materialAutoForm" data-material-form="rkp_kerjasama">Daftar Kerjasama</a>
+                <a href="#materialAutoForm" data-material-form="rkp_rancangan_laporan">Rancangan RKPDesa</a>
+                <a href="#materialAutoForm" data-material-form="rkp_du_rkp">DU-RKP</a>
+                <a href="#materialAutoForm" data-material-form="rkp_ba_rancangan">BA Hasil Penyusunan Rancangan</a>
+                <a href="#materialAutoForm" data-material-form="rkp_ba_musdes">BA Musdes Perencanaan Desa</a>
+                <a href="#materialAutoForm" data-material-form="rkp_ba_musrenbang">Musrenbang Desa RKP Desa</a>
+                <a href="#materialAutoForm" data-material-form="rkp_ba_pengesahan">BA Musdes Pengesahan RKP Desa</a>
               </div>
             </details>
           </nav>
           <?php else: ?>
-          <nav class="material-menu" aria-label="Sub menu <?= htmlspecialchars($activeAdmin['title'], ENT_QUOTES, 'UTF-8') ?>">
-            <a href="?view=dashboard&v=<?= htmlspecialchars($cacheVersion, ENT_QUOTES, 'UTF-8') ?>#overview"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
-            <a href="#materialAutoForm" data-material-form="profile"><i data-lucide="user"></i><span>Profil Dokumen</span></a>
-            <a href="#materialAutoForm" data-material-form="table"><i data-lucide="clipboard-list"></i><span>Daftar Program</span></a>
-            <a href="#materialAutoForm" data-material-form="typography"><i data-lucide="file-text"></i><span>Bidang Kegiatan</span></a>
-            <a href="#materialAutoForm" data-material-form="icons"><i data-lucide="share-2"></i><span>Indikator</span></a>
-            <a href="#materialAutoForm" data-material-form="maps"><i data-lucide="map-pin"></i><span>Lokasi</span></a>
-            <a href="#materialAutoForm" data-material-form="notifications"><i data-lucide="bell"></i><span>Notifikasi</span></a>
+          <nav class="material-menu" aria-label="Sub menu APBDesa">
+            <a class="material-menu-root" href="?view=dashboard&v=<?= htmlspecialchars($cacheVersion, ENT_QUOTES, 'UTF-8') ?>#overview"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+            <details class="material-menu-group">
+              <summary><i data-lucide="database"></i><span>Data</span></summary>
+              <div class="material-submenu">
+                <a href="#materialAutoForm" data-material-form="apb_data">Data APBDesa</a>
+                <a href="#materialAutoForm" data-material-form="apb_akun">Akun/Rekening</a>
+                <a href="#materialAutoForm" data-material-form="apb_bidang">Bidang</a>
+                <a href="#materialAutoForm" data-material-form="apb_subbidang">Sub Bidang</a>
+              </div>
+            </details>
+            <details class="material-menu-group">
+              <summary><i data-lucide="list-checks"></i><span>Kegiatan</span></summary>
+              <div class="material-submenu">
+                <a href="#materialAutoForm" data-material-form="apb_kegiatan">Input Kegiatan</a>
+                <a href="#materialAutoForm" data-material-form="apb_paket_kegiatan">Input Paket Kegiatan</a>
+              </div>
+            </details>
+            <details class="material-menu-group"><summary><i data-lucide="circle-dollar-sign"></i><span>Pendapatan</span></summary><div class="material-submenu"><a href="#materialAutoForm" data-material-form="apb_pendapatan">Pendapatan</a><a href="#materialAutoForm" data-material-form="apb_pendapatan_perubahan">Pendapatan Perubahan</a></div></details>
+            <details class="material-menu-group"><summary><i data-lucide="receipt-text"></i><span>Belanja</span></summary><div class="material-submenu"><a href="#materialAutoForm" data-material-form="apb_belanja">Belanja</a><a href="#materialAutoForm" data-material-form="apb_belanja_perubahan">Belanja Perubahan</a></div></details>
+            <details class="material-menu-group"><summary><i data-lucide="landmark"></i><span>Pembiayaan 1</span></summary><div class="material-submenu"><a href="#materialAutoForm" data-material-form="apb_pembiayaan_1">Penerimaan Pembiayaan</a><a href="#materialAutoForm" data-material-form="apb_pembiayaan_1_perubahan">Perubahan Penerimaan</a></div></details>
+            <details class="material-menu-group"><summary><i data-lucide="hand-coins"></i><span>Pembiayaan 2</span></summary><div class="material-submenu"><a href="#materialAutoForm" data-material-form="apb_pembiayaan_2">Pengeluaran Pembiayaan</a><a href="#materialAutoForm" data-material-form="apb_pembiayaan_2_perubahan">Perubahan Pengeluaran</a></div></details>
+            <details class="material-menu-group">
+              <summary><i data-lucide="files"></i><span>Pelaporan</span></summary>
+              <div class="material-submenu">
+                <a href="#materialAutoForm" data-material-form="apb_laporan_apbdes">APBDesa</a>
+                <a href="#materialAutoForm" data-material-form="apb_laporan_pendapatan">Pendapatan</a>
+                <a href="#materialAutoForm" data-material-form="apb_laporan_belanja">Belanja</a>
+                <a href="#materialAutoForm" data-material-form="apb_laporan_pembiayaan_1">Pembiayaan 1</a>
+                <a href="#materialAutoForm" data-material-form="apb_laporan_pembiayaan_2">Pembiayaan 2</a>
+                <a href="#materialAutoForm" data-material-form="apb_penjabaran">Penjabaran APBDesa</a>
+                <a href="#materialAutoForm" data-material-form="apb_laporan_perubahan">Perubahan APBDesa</a>
+                <a href="#materialAutoForm" data-material-form="apb_penjabaran_perubahan">Penjabaran Perubahan</a>
+              </div>
+            </details>
+            <details class="material-menu-group"><summary><i data-lucide="settings-2"></i><span>Pengaturan</span></summary><div class="material-submenu"><a href="#materialAutoForm" data-material-form="apb_tagging">Tagging</a><a href="#materialAutoForm" data-material-form="apb_satuan">Satuan</a><a href="#materialAutoForm" data-material-form="apb_user">User</a></div></details>
           </nav>
           <?php endif; ?>
           <a class="material-upgrade" href="?view=dashboard&v=<?= htmlspecialchars($cacheVersion, ENT_QUOTES, 'UTF-8') ?>">
@@ -818,38 +959,30 @@ $isAdminView = $currentView !== 'dashboard';
                 <h2>Tabel yang berhasil di input</h2>
                 <p>Setiap data dari form otomatis masuk ke tabel ini setelah tombol Simpan Data ditekan.</p>
               </div>
-              <div class="material-table-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <input type="file" id="importExcelFile" accept=".xlsx, .xls, .csv" style="display: none;">
-                <button class="btn btn-outline-success" id="importExcelBtn" type="button" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 16px;">
-                  <i data-lucide="upload"></i>
-                  Import Excel
-                </button>
-                <button class="btn btn-outline-primary" id="exportExcelBtn" type="button" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 16px;">
-                  <i data-lucide="download"></i>
-                  Export Excel
+              <div class="material-result-actions">
+                <button class="material-add-table-row" id="addMaterialTableRow" type="button">
+                  <i data-lucide="plus"></i>Tambah Baris
                 </button>
                 <button class="material-clear-table" id="clearMaterialTable" type="button">
-                  <i data-lucide="trash-2"></i>
-                  Hapus Tabel
+                  <i data-lucide="trash-2"></i>Hapus Tabel
                 </button>
               </div>
             </div>
             <div class="material-table-wrap">
               <table class="material-result-table">
-                <thead>
+                <thead id="materialResultHead">
                   <tr>
-                    <th>No</th>
-                    <th>Modul</th>
-                    <th>Form</th>
-                    <th>Ringkasan Input</th>
-                    <th>Status</th>
-                    <th>Waktu</th>
+                    <th>Nama Dokumen</th>
+                    <th>Periode</th>
+                    <th>Status Proses</th>
+                    <th>Operator</th>
+                    <th>Catatan Dashboard</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="materialResultRows">
                   <tr class="material-empty-row">
-                    <td colspan="7">Belum ada data yang berhasil di input.</td>
+                    <td colspan="6">Belum ada data yang berhasil di input.</td>
                   </tr>
                 </tbody>
               </table>
