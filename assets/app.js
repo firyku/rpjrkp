@@ -6,12 +6,15 @@ const sideNavLinks = Array.from(document.querySelectorAll(".side-nav a"));
 const viewLinks = Array.from(document.querySelectorAll("[data-view]"));
 const materialMenuLinks = Array.from(document.querySelectorAll("[data-material-form]"));
 const materialAutoForm = document.querySelector("#materialAutoFormFields");
+const materialFormPanel = document.querySelector("#materialAutoForm");
 const materialFormKicker = document.querySelector("#materialFormKicker");
 const materialFormHeading = document.querySelector("#materialFormHeading");
 const materialFormDescription = document.querySelector("#materialFormDescription");
 const materialFormIcon = document.querySelector(".material-form-icon");
+const materialResultHead = document.querySelector("#materialResultHead");
 const materialResultRows = document.querySelector("#materialResultRows");
 const clearMaterialTableButton = document.querySelector("#clearMaterialTable");
+const addMaterialTableRowButton = document.querySelector("#addMaterialTableRow");
 const desaDataForm = document.querySelector("#desaDataForm");
 const desaDataRows = document.querySelector("#desaDataRows");
 const clearDesaDataTableButton = document.querySelector("#clearDesaDataTable");
@@ -19,6 +22,8 @@ const visiDesaList = document.querySelector("#visiDesaList");
 const addVisiDesaItemButton = document.querySelector("#addVisiDesaItem");
 const dashboardView = document.querySelector("#dashboardView");
 const adminView = document.querySelector("#adminView");
+const heroDreaminaVideo = document.querySelector("#heroDreaminaVideo");
+const heroSoundToggle = document.querySelector("#heroSoundToggle");
 
 const adminConfig = {
   rpjmdesa: {
@@ -65,6 +70,70 @@ let materialSavedRows = [];
 let desaSavedRows = [];
 let editingDesaRowId = null;
 let editingMaterialRowId = null;
+let currentMaterialSectionSteps = [];
+
+if (heroDreaminaVideo) {
+  let heroSoundEnabled = false;
+
+  const syncHeroSoundButton = () => {
+    if (!heroSoundToggle) {
+      return;
+    }
+
+    const icon = heroSoundToggle.querySelector("i");
+    const label = heroSoundToggle.querySelector("span");
+    heroSoundToggle.setAttribute("aria-pressed", String(heroSoundEnabled));
+    heroSoundToggle.setAttribute("aria-label", heroSoundEnabled ? "Matikan suara video" : "Nyalakan suara video");
+
+    if (icon) {
+      icon.setAttribute("data-lucide", heroSoundEnabled ? "volume-2" : "volume-x");
+    }
+    if (label) {
+      label.textContent = heroSoundEnabled ? "Suara aktif" : "Suara mati";
+    }
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  };
+
+  const playHeroVideo = () => {
+    heroDreaminaVideo.muted = !heroSoundEnabled;
+    heroDreaminaVideo.volume = heroSoundEnabled ? 1 : 0;
+    heroDreaminaVideo.loop = true;
+    heroDreaminaVideo.playsInline = true;
+    const playPromise = heroDreaminaVideo.play();
+    if (playPromise?.catch) {
+      playPromise.catch(() => {});
+    }
+  };
+
+  heroSoundToggle?.addEventListener("click", () => {
+    heroSoundEnabled = !heroSoundEnabled;
+    syncHeroSoundButton();
+    playHeroVideo();
+  });
+
+  heroDreaminaVideo.addEventListener("volumechange", () => {
+    const isSoundEnabled = !heroDreaminaVideo.muted && heroDreaminaVideo.volume > 0;
+    if (isSoundEnabled !== heroSoundEnabled) {
+      heroSoundEnabled = isSoundEnabled;
+      syncHeroSoundButton();
+    }
+  });
+
+  if (heroDreaminaVideo.readyState >= 2) {
+    playHeroVideo();
+  } else {
+    heroDreaminaVideo.addEventListener("canplay", playHeroVideo, { once: true });
+  }
+
+  window.addEventListener("load", playHeroVideo);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      playHeroVideo();
+    }
+  });
+}
 
 function createReportTemplate(key, title) {
   return {
@@ -82,6 +151,63 @@ function createReportTemplate(key, title) {
     ],
   };
 }
+
+function normalizeAccessName(label) {
+  return label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "") || "field";
+}
+
+function accessField(label, type = "text") {
+  const selectOptions = {
+    "Jenis_RPJMdes": ["Penyusunan", "Perubahan"],
+    "STATUS PERDES_RPJMDes": ["Berlaku", "Perubahan", "Dicabut"],
+    "STATUS PERDES_RKPDes": ["Berlaku", "Perubahan", "Dicabut"],
+    "Jenis Musdes": ["Musdes Perencanaan", "Musdes Penyusunan", "Musrenbang Desa", "Musdes Penetapan"],
+    "Bidang": ["Penyelenggaraan Pemerintahan Desa", "Pelaksanaan Pembangunan Desa", "Pembinaan Kemasyarakatan", "Pemberdayaan Masyarakat", "Penanggulangan Bencana, Keadaan Darurat dan Mendesak"],
+    "BIDANG": ["Penyelenggaraan Pemerintahan Desa", "Pelaksanaan Pembangunan Desa", "Pembinaan Kemasyarakatan", "Pemberdayaan Masyarakat", "Penanggulangan Bencana, Keadaan Darurat dan Mendesak"],
+    "Sumber Dana": ["PAD", "Dana Desa", "ADD", "PBH", "Bantuan Provinsi", "Bantuan Kabupaten", "Lain-lain"],
+    "sumber dana": ["PAD", "Dana Desa", "ADD", "PBH", "Bantuan Provinsi", "Bantuan Kabupaten", "Lain-lain"],
+    "Pola Pelaksanaan": ["Swakelola", "Kerja Sama Antar Desa", "Kerja Sama Pihak Ketiga"],
+    "pola": ["Swakelola", "Kerja Sama Antar Desa", "Kerja Sama Pihak Ketiga"],
+    "Jenis": ["Tanaman Pangan", "Perkebunan", "Buah-buahan"],
+    "Jenis Ternak/Perikanan": ["Peternakan", "Perikanan Tangkap", "Perikanan Budidaya"],
+    "Kondisi": ["Baik", "Rusak Ringan", "Rusak Sedang", "Rusak Berat"],
+    "Kondisi Irigasi": ["Baik", "Rusak Ringan", "Rusak Sedang", "Rusak Berat"],
+    "Jenis Permukiman": ["Perdesaan", "Perkotaan", "Pesisir", "Pegunungan", "Bantaran Sungai"],
+    "Jenis Pembiayaan": ["Penerimaan Pembiayaan", "Pengeluaran Pembiayaan"],
+  };
+  if (selectOptions[label]) {
+    return {label,name:normalizeAccessName(label),type:"select",options:selectOptions[label],value:selectOptions[label][0]};
+  }
+  return {
+    label,
+    name: normalizeAccessName(label),
+    type,
+    full: type === "textarea",
+    placeholder: label,
+  };
+}
+
+function accessFields(columns, textareaColumns = []) {
+  const textareaSet = new Set(textareaColumns);
+  return columns.map((label) => accessField(label, textareaSet.has(label) ? "textarea" : "text"));
+}
+
+const detailedProfileFields = accessFields([
+  "Tahun Data", "Jumlah Penduduk Tahun Ini", "Jumlah Penduduk Tahun Sebelumnya", "Pertumbuhan Penduduk (%)", "Jumlah Laki-laki", "Jumlah Perempuan", "Jumlah Kepala Keluarga",
+  "Penduduk Usia Kerja", "Angkatan Kerja", "Bekerja", "Pengangguran", "Bukan Angkatan Kerja", "Tingkat Partisipasi Angkatan Kerja (%)",
+  "Tidak/Belum Sekolah", "Belum Tamat SD", "Tamat SD/Sederajat", "Tamat SMP/Sederajat", "Tamat SMA/Sederajat", "Diploma", "Sarjana", "Pascasarjana",
+  "Jumlah Kelahiran", "Jumlah Kematian", "Kematian Bayi", "Ibu Hamil", "Balita", "Balita Gizi Buruk", "Penyandang Disabilitas", "Sarana Kesehatan", "Tenaga Kesehatan",
+  "Jumlah Keluarga", "Keluarga Pra Sejahtera", "Keluarga Sejahtera I", "Penduduk Miskin", "Penerima Bantuan Sosial",
+  "Jumlah UMKM", "Jumlah BUM Desa", "Pasar Desa", "Koperasi", "Usaha Perdagangan", "Usaha Jasa", "Pendapatan Rata-rata Penduduk",
+  "Jenis", "Komoditi", "Produksi 3 Tahun Sebelumnya", "Satuan 3 Tahun Sebelumnya", "Produksi 2 Tahun Sebelumnya", "Satuan 2 Tahun Sebelumnya", "Produksi 1 Tahun Sebelumnya", "Satuan 1 Tahun Sebelumnya",
+  "Jenis Ternak/Perikanan", "Komoditas Ternak/Perikanan", "Jumlah Populasi", "Produksi per Tahun", "Satuan Produksi",
+  "Jenis Infrastruktur", "Lokasi Infrastruktur", "Volume", "Satuan", "Kondisi", "Tahun Pembangunan", "Keterangan Infrastruktur",
+  "Nama/Jenis Irigasi", "Lokasi Irigasi", "Panjang (Meter)", "Luas Layanan (Ha)", "Kondisi Irigasi", "Jumlah Penerima Manfaat",
+  "Jumlah Rumah", "Rumah Layak Huni", "Rumah Tidak Layak Huni", "Akses Air Bersih", "Akses Sanitasi", "Akses Listrik", "Jenis Permukiman", "Keterangan Pemukiman",
+], ["Keterangan Infrastruktur", "Keterangan Pemukiman"]);
 
 const materialFormTemplates = {
   dashboard: {
@@ -184,461 +310,204 @@ const materialFormTemplates = {
     icon: "list-tree",
     title: "Input Daftar Isi",
     description: "Form mengikuti tabel Access daftar isi RPJMDesa.",
-    fields: [
-      { label: "Kode", name: "kode", type: "text", placeholder: "Contoh: BAB I" },
-      { label: "Isi", name: "isi", type: "text", placeholder: "Judul daftar isi" },
-      { label: "Kode Uraian", name: "kode_uraian", type: "text", placeholder: "Kode uraian" },
-      { label: "Halaman", name: "halaman", type: "number", placeholder: "0" },
-      { label: "Uraian", name: "uraian", type: "textarea", full: true, placeholder: "Uraian isi dokumen" },
-    ],
+    fields: accessFields(["Halaman", "ISI", "Kode", "Kode uraian", "Uraian"]),
   },
   input_data_umum: {
     key: "input_data_umum",
     icon: "database",
     title: "Input Data Umum",
-    description: "Form ringkas tabel Data Umum untuk identitas RPJMDesa.",
-    fields: [
-      { label: "Desa (huruf Kecil)", name: "desa", type: "select", options: ["Gudangharjo"], value: "Gudangharjo" },
-      { label: "Nama Ketua Tim Penyusun", name: "nama_ketua_tim_penyusun", type: "text", value: "Fitriana" },
-      { label: "Kecamatan (huruf Kecil)", name: "kecamatan", type: "text", value: "Paranggupito" },
-      { label: "Nama Ketua BPD", name: "nama_ketua_bpd", type: "text", value: "Joko Ratmanto" },
-      { label: "Kabupaten (huruf Kecil)", name: "kabupaten", type: "text", value: "Wonogiri" },
-      { label: "Nomor SK Tim Penyusun", name: "nomor_sk_tim_penyusun", type: "text", value: "5 Tahun 2025" },
-      { label: "Provinsi (huruf Kecil)", name: "provinsi", type: "text", value: "Jawa Tengah" },
-      { label: "Jenis RPJMDesa", name: "jenis_rpjmdesa", type: "select", options: ["Perubahan", "Murni"], value: "Perubahan" },
-      { label: "Visi Desa", name: "visi_desa", type: "textarea", value: "\"Gudangharjo Mandiri, berkelanjutan\"" },
-      { label: "Isian Tentang Perdes RPJMDesa", name: "isian_tentang_perdes_rpjmdesa", type: "textarea", value: "PERUBAHAN ATAS PERATURAN DESA NOMOR 3 TAHUN 2020 TENTANG RENCANA PEMBANGUNAN JANGKA MENENGAH DESA DESA GUDANGHARJO KECAMATAN PARANGGUPITO TAHUN 2021 - 2028" },
-      { label: "Nama Kepala Desa", name: "nama_kepala_desa", type: "text", value: "SRIYONO" },
-      { label: "Tanggal Pengundangan Perdes RPJMDesa", name: "tanggal_pengundangan_perdes_rpjmdesa", type: "text", value: "19 Juni 2025" },
-      { label: "Nama Sekretaris Desa", name: "nama_sekretaris_desa", type: "text", value: "EDY RACHMAT CAHYONO" },
-      { label: "Alamat Desa", name: "alamat_desa", type: "text", value: "Jl. Pantai Nampu Km.2" },
-      { label: "Perdes RPJMDesa", name: "perdes_rpjmdesa", type: "text", value: "2 Tahun 2025" },
-      { label: "Status Perdes RPJMDesa", name: "status_perdes_rpjmdesa", type: "select", options: ["PERATURAN DESA", "RANCANGAN PERATURAN DESA"], value: "PERATURAN DESA" },
-    ],
+    description: "Form mengikuti tabel Access Data Umum.",
+    fields: accessFields([
+      "ALAMAT DESA", "Baground Caver", "Desa", "Foto_Kades", "Gambar_cover_RPJMdesa",
+      "Ganbar_Bagan_kelembagaan", "Ganbar_sketsa_desa", "Jenis_RPJMdes", "Jumlah Dusun (angka)",
+      "Jumlah Dusun (huruf)", "Jumlah Kepala Keluarga (KK)", "Kabupaten", "Kecamatan", "LOGO KAB",
+      "LOGO KEMENTRIAN", "Nama Kepala Desa", "Nama Ketua BPD", "Nama Ketua Tim", "Nama RKPDEsa",
+      "Nama Sekretaris Desa", "No Perdes RKPdesa", "No Perdes RPJMDEs yg di cabut", "No sk tim penyusun",
+      "No sk tim penyusun RPJMDes", "Peiode RPJMDes Lama yang di cabut (mulai - akhir)", "Perdes RPJMdesa",
+      "Periode RPJMDesa Ke", "Provinsi", "STATUS PERDES_RKPDes", "STATUS PERDES_RPJMDes",
+      "Tahun akhir Periode RPJMdesa", "Tahun Anggaran", "Tahun Awal Periode RPJMdesa", "tahun berjalan",
+      "Tanggal Penetapan perdes", "Tanggal Pengundangan perdes", "Tanggal Pengundangan perdes RPJMDes",
+      "Tanggal Penyusunan", "Tanggal_Penyusunan_RPJMDes", "Tentang_Perdes_RPJMDes",
+      "Tgl Penetapan Perdes RPJMDesa", "Visi Desa",
+    ], ["Baground Caver", "Foto_Kades", "Gambar_cover_RPJMdesa", "Ganbar_Bagan_kelembagaan", "Ganbar_sketsa_desa", "LOGO KAB", "LOGO KEMENTRIAN", "Tentang_Perdes_RPJMDes"]),
   },
   input_misi_desa: {
     key: "input_misi_desa",
     icon: "target",
     title: "Input Misi Desa",
     description: "Form mengikuti tabel Access misi.",
-    fields: [
-      { label: "Misi Desa", name: "misi_list", type: "mission_list", full: true },
-    ],
+    fields: accessFields(["Misi Desa", "No Urut"], ["Misi Desa"]),
   },
-  input_sejarah_desa: {
-    key: "input_sejarah_desa",
-    icon: "book-open",
-    title: "Input Sejarah Desa",
-    description: "Form mengikuti tabel sejarah pada Access.",
-    fields: [
-      { label: "Uraian Sejarah", name: "uraian_sejarah", type: "textarea", full: true, placeholder: "Uraian sejarah desa" }
-    ]
-  },
-  input_sejarah_kades: {
-    key: "input_sejarah_kades",
-    icon: "users",
-    title: "Sejarah Jabatan Kepala Desa",
-    description: "Form mengikuti tabel nm_KADES pada Access.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Nama Kepala Desa", name: "nama_kepala_desa", type: "text", placeholder: "Nama Kepala Desa" },
-      { label: "Tahun", name: "tahun", type: "text", placeholder: "Contoh: 2021-2027" }
-    ]
-  },
-  input_profil_pendidikan: {
-    key: "input_profil_pendidikan",
-    icon: "graduation-cap",
-    title: "Input Profil Tentang Pendidikan",
-    description: "Form mengikuti tabel pendidikan pada Access.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Pendidikan", name: "pendidikan", type: "text", placeholder: "Tingkat pendidikan" },
-      { label: "L (Laki-laki)", name: "l", type: "number", placeholder: "Jumlah Laki-laki" },
-      { label: "P (Perempuan)", name: "p", type: "number", placeholder: "Jumlah Perempuan" },
-      { label: "Jumlah", name: "jumlah", type: "number", placeholder: "Total" }
-    ]
-  },
-  input_profil_kesehatan: {
-    key: "input_profil_kesehatan",
-    icon: "activity",
-    title: "Input Profil Tentang Kesehatan",
-    description: "Form mengikuti tabel kesehatan pada Access.",
-    fields: [
-      { label: "Uraian", name: "uraian", type: "text", placeholder: "Uraian kondisi kesehatan" },
-      { label: "T1 (Tahun 1)", name: "t1", type: "number", placeholder: "Jumlah" },
-      { label: "T2 (Tahun 2)", name: "t2", type: "number", placeholder: "Jumlah" },
-      { label: "T3 (Tahun 3)", name: "t3", type: "number", placeholder: "Jumlah" }
-    ]
-  },
-  input_profil_pekerjaan: {
-    key: "input_profil_pekerjaan",
-    icon: "briefcase",
-    title: "Input Profil Tentang Mata Pencaharian",
-    description: "Form mengikuti tabel pekerjaan pada Access.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Pekerjaan", name: "pekerjaan", type: "text", placeholder: "Jenis pekerjaan" },
-      { label: "Jumlah", name: "jumlah", type: "text", placeholder: "Jumlah pekerja" }
-    ]
-  },
-  input_profil_agama: {
-    key: "input_profil_agama",
-    icon: "bookmark",
-    title: "Input Profil Tentang Agama",
-    description: "Form mengikuti tabel agama pada Access.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Agama", name: "agama", type: "text", placeholder: "Nama agama" },
-      { label: "Jumlah", name: "jumlah", type: "number", placeholder: "Jumlah penganut" }
-    ]
-  },
-  input_profil_infrastruktur: {
-    key: "input_profil_infrastruktur",
-    icon: "wrench",
-    title: "Input Profil Tentang Infrastruktur",
-    description: "Form mengikuti tabel jalan pada Access.",
-    fields: [
-      { label: "No", name: "no", type: "text", placeholder: "1" },
-      { label: "Jenis", name: "jenis", type: "text", placeholder: "Jenis infrastruktur" },
-      { label: "Uraian", name: "uraian", type: "text", placeholder: "Uraian" },
-      { label: "Baik", name: "baik", type: "number", placeholder: "Kondisi baik" },
-      { label: "Satuan Baik", name: "satuan_baik", type: "text", placeholder: "Satuan" },
-      { label: "Rusak", name: "rusak", type: "number", placeholder: "Kondisi rusak" },
-      { label: "Satuan Rusak", name: "satuan_rusak", type: "text", placeholder: "Satuan" },
-      { label: "Jumlah", name: "jumlah", type: "number", placeholder: "Total" },
-      { label: "Satuan", name: "satuan", type: "text", placeholder: "Satuan" }
-    ]
-  },
-  input_profil_irigasi: {
-    key: "input_profil_irigasi",
-    icon: "droplets",
-    title: "Input Profil Tentang Irigasi",
-    description: "Form mengikuti tabel irigasi pada Access.",
-    fields: [
-      { label: "No", name: "no", type: "text", placeholder: "1" },
-      { label: "Uraian", name: "uraian", type: "text", placeholder: "Uraian irigasi" },
-      { label: "Baik", name: "baik", type: "number", placeholder: "Kondisi baik" },
-      { label: "Rusak", name: "rusak", type: "number", placeholder: "Kondisi rusak" },
-      { label: "Jumlah", name: "jumlah", type: "number", placeholder: "Total" }
-    ]
-  },
-  input_profil_pemukiman: {
-    key: "input_profil_pemukiman",
-    icon: "home",
-    title: "Input Profil Tentang Pemukiman",
-    description: "Form mengikuti tabel RTLH pada Access.",
-    fields: [
-      { label: "No", name: "no", type: "text", placeholder: "1" },
-      { label: "Uraian", name: "uraian", type: "text", placeholder: "Uraian pemukiman" },
-      { label: "Baik", name: "baik", type: "number", placeholder: "Kondisi baik" },
-      { label: "Satuan Baik", name: "satuan_baik", type: "text", placeholder: "Satuan" },
-      { label: "Rusak", name: "rusak", type: "number", placeholder: "Kondisi rusak" },
-      { label: "Satuan Rusak", name: "satuan_rusak", type: "text", placeholder: "Satuan" },
-      { label: "Jumlah", name: "jumlah", type: "number", placeholder: "Total" },
-      { label: "Satuan", name: "satuan", type: "text", placeholder: "Satuan" }
-    ]
-  },
-  input_dusun: {
-    key: "input_dusun",
-    icon: "map-pin",
-    title: "Input Dusun",
-    description: "Form mengikuti tabel Dusun pada Access.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Nama Dusun", name: "nama_dusun", type: "text", placeholder: "Nama Dusun" },
-      { label: "Jumlah RW", name: "jumlah_rw", type: "number", placeholder: "Jumlah RW" },
-      { label: "Jumlah RT", name: "jumlah_rt", type: "number", placeholder: "Jumlah RT" },
-      { label: "Nama Kepala Dusun", name: "nama_kepala_dusun", type: "text", placeholder: "Nama Kepala Dusun" }
-    ]
-  },
-  input_sotk: {
-    key: "input_sotk",
-    icon: "network",
-    title: "Input SOTK",
-    description: "Form mengikuti tabel sotk pada Access.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Nama", name: "nama", type: "text", placeholder: "Nama lengkap" },
-      { label: "Jabatan", name: "jabatan", type: "text", placeholder: "Jabatan SOTK" }
-    ]
-  },
-  input_bpd: {
-    key: "input_bpd",
-    icon: "user-check",
-    title: "Input Data BPD",
-    description: "Form mengikuti tabel bpd pada Access.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Nama", name: "nama", type: "text", placeholder: "Nama lengkap" },
-      { label: "Jabatan", name: "jabatan", type: "text", placeholder: "Jabatan BPD" }
-    ]
-  },
-  input_profil_penduduk: {
-    key: "input_profil_penduduk",
-    icon: "trending-up",
-    title: "Input Profil Tentang Pertumbuhan Penduduk",
-    description: "Form mengikuti tabel pertumbuhan penduduk pada Access.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Kelompok Umur (Tahun)", name: "kelompok_umur", type: "text", placeholder: "Contoh: 0-4" },
-      { label: "Laki-Laki (jiwa)", name: "laki_laki", type: "number", placeholder: "Jumlah Laki-laki" },
-      { label: "Perempuan (jiwa)", name: "perempuan", type: "number", placeholder: "Jumlah Perempuan" },
-      { label: "Jumlah (Jiwa)", name: "jumlah", type: "number", placeholder: "Total" }
-    ]
-  },
-  input_data_dusun: {
-    key: "input_data_dusun",
-    icon: "map",
-    title: "Input Data Dusun",
-    description: "Form pendataan rinci untuk kependudukan per Dusun.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Nama Dusun", name: "nama_dusun", type: "text", placeholder: "Nama Dusun" },
-      { label: "Nama Ketua RT", name: "nama_ketua_rt", type: "text", placeholder: "Nama Ketua RT" },
-      { label: "Jumlah Penduduk (Laki-Laki)", name: "jml_l", type: "number", placeholder: "Jumlah L" },
-      { label: "Jumlah Penduduk (Perempuan)", name: "jml_p", type: "number", placeholder: "Jumlah P" }
-    ]
+  input_profil_desa: {
+    key: "input_profil_desa",
+    icon: "map-pinned",
+    title: "Input Profil Desa",
+    description: "Form mengikuti kolom tabel PROFIL pada Access.",
+    fields: detailedProfileFields,
   },
   input_rktl: {
     key: "input_rktl",
     icon: "calendar-clock",
     title: "Input RKTL",
     description: "Form mengikuti tabel rktl RPJMdesa.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Hari", name: "hari", type: "text", placeholder: "Contoh: Senin" },
-      { label: "Tanggal", name: "tanggal", type: "date" },
-      { label: "Bulan", name: "bulan", type: "text", placeholder: "Nama bulan" },
-      { label: "Tahun", name: "tahun", type: "number", value: "2026" },
-      { label: "Pukul", name: "pukul", type: "text", placeholder: "Contoh: 09.00 WIB" },
-      { label: "Tempat", name: "tempat", type: "text", placeholder: "Tempat kegiatan" },
-      { label: "Jenis", name: "jenis", type: "select", options: ["RPJMDesa", "Musdes", "Musdus/Kelompok", "Verifikasi"], value: "RPJMDesa" },
-      { label: "Uraian", name: "uraian", type: "textarea", full: true, placeholder: "Uraian rencana tindak lanjut" },
-    ],
+    fields: accessFields(["BULAN", "HARI", "Jenis", "NO", "PUKUL", "TAHUN", "TANGGAL", "TEMPAT", "URAIAN"]),
   },
   input_musdes: {
     key: "input_musdes",
     icon: "users",
     title: "Input Musdes",
     description: "Form mengikuti tabel musdes RPJMDes.",
-    fields: [
-      { label: "Nomor", name: "nomor", type: "number", placeholder: "1" },
-      { label: "Jenis Musdes", name: "jenis_musdes", type: "text", placeholder: "Jenis musyawarah desa" },
-      { label: "Pemimpin", name: "pemimpin", type: "text", placeholder: "Nama pemimpin" },
-      { label: "Pemimpin Dari Unsur", name: "pemimpin_unsur", type: "text", placeholder: "Unsur pemimpin" },
-      { label: "Notulen", name: "notulen", type: "text", placeholder: "Nama notulen" },
-      { label: "Notulen Dari Unsur", name: "notulen_unsur", type: "text", placeholder: "Unsur notulen" },
-      { label: "Narasumber 1", name: "narsum_1", type: "text", placeholder: "Nama narasumber" },
-      { label: "Narasumber 1 Dari Unsur", name: "narsum_1_unsur", type: "text", placeholder: "Unsur narasumber" },
-      { label: "Wakil Masyarakat", name: "wakil_masyarakat", type: "textarea", full: true, placeholder: "Daftar wakil masyarakat" },
-    ],
+    fields: accessFields([
+      "Jenis Musdes", "Narsum 1", "narsum 1 Dari Unsur", "Narsum 2", "narsum 2 Dari Unsur",
+      "Narsum 3", "narsum 3 Dari Unsur", "Narsum 4", "narsum 4 Dari Unsur", "Narsum 5",
+      "narsum 5 Dari Unsur", "Narsum 6", "narsum 6 Dari Unsur", "Narsum 7", "narsum 7 Dari Unsur",
+      "Narsum 8", "narsum 8 Dari Unsur", "nomor", "Notulen", "Notulen Dari Unsur", "Pemimpin",
+      "Pemimpin Dari Unsur", "Wakil Masyarakat",
+    ]),
   },
-  input_data_penting: {
-    key: "input_data_penting",
-    icon: "badge-info",
-    title: "Input Data Penting",
-    description: "Data kunci dari tabel Data Umum untuk kebutuhan dokumen RPJMDesa.",
-    fields: [
-      { label: "Periode RPJMDesa Ke", name: "periode_rpjmdesa_ke", type: "text", placeholder: "Contoh: Ke-2" },
-      { label: "Tahun Awal Periode RPJMDesa", name: "tahun_awal_periode", type: "number", placeholder: "2026" },
-      { label: "Tahun Akhir Periode RPJMDesa", name: "tahun_akhir_periode", type: "number", placeholder: "2031" },
-      { label: "Jumlah Dusun (angka)", name: "jumlah_dusun_angka", type: "number", placeholder: "0" },
-      { label: "Jumlah Dusun (huruf)", name: "jumlah_dusun_huruf", type: "text", placeholder: "Contoh: Lima" },
-      { label: "Jumlah Kepala Keluarga (KK)", name: "jumlah_kk", type: "number", placeholder: "0" },
-      { label: "Tanggal Penyusunan RPJMDes", name: "tanggal_penyusunan_rpjmdes", type: "text", placeholder: "Contoh: 19 Mei 2025" },
-      { label: "Tentang Perdes RPJMDes", name: "tentang_perdes_rpjmdes", type: "textarea", full: true, placeholder: "Uraian tentang Perdes RPJMDes" },
-    ],
+  input_sejarah_desa: {
+    key: "input_sejarah_desa",
+    icon: "landmark",
+    title: "Input Sejarah Desa",
+    description: "Mencatat urutan tahun, peristiwa, dan keterangan sejarah desa.",
+    fields: accessFields(["No", "Tahun", "Peristiwa", "Keterangan"], ["Peristiwa", "Keterangan"]),
   },
   input_renc_pendapatan: {
     key: "input_renc_pendapatan",
     icon: "wallet-cards",
     title: "Input Renc Pendapatan",
     description: "Form rencana pendapatan untuk lampiran perencanaan RPJMDesa.",
-    fields: [
-      { label: "Kode Pendapatan", name: "kode_pendapatan", type: "text", placeholder: "Kode rekening" },
-      { label: "Uraian Pendapatan", name: "uraian_pendapatan", type: "text", placeholder: "Uraian pendapatan" },
-      { label: "Tahun Ke-1", name: "tahun_1", type: "number", placeholder: "0" },
-      { label: "Tahun Ke-2", name: "tahun_2", type: "number", placeholder: "0" },
-      { label: "Tahun Ke-3", name: "tahun_3", type: "number", placeholder: "0" },
-      { label: "Sumber Dana", name: "sumber_dana", type: "text", placeholder: "Contoh: DD, ADD, PADes" },
-      { label: "Keterangan", name: "keterangan", type: "textarea", full: true, placeholder: "Catatan rencana pendapatan" },
-    ],
+    fields: accessFields(["ADD", "BANKEU_Kab", "BANKEU_Prov", "DDS", "PAD", "PBH", "Tahun"]),
   },
   input_matrik: {
     key: "input_matrik",
     icon: "table-properties",
     title: "Input Matrik",
     description: "Form mengikuti tabel matrik RPJMDesa.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Paket Kegiatan", name: "paket_kegiatan", type: "text", placeholder: "Nama paket kegiatan" },
-      { label: "Bidang", name: "bidang", type: "text", placeholder: "Bidang" },
-      { label: "Sub Bidang", name: "sub_bidang", type: "text", placeholder: "Sub bidang" },
-      { label: "Kegiatan", name: "kegiatan", type: "text", placeholder: "Nama kegiatan" },
-      { label: "Lokasi (RT/RW)", name: "lokasi_rt_rw", type: "text", placeholder: "Lokasi kegiatan" },
-      { label: "Volume Tahun 1", name: "th1", type: "number", placeholder: "0" },
-      { label: "Volume Tahun 2", name: "th2", type: "number", placeholder: "0" },
-      { label: "Satuan", name: "satuan", type: "text", placeholder: "Satuan" },
-      { label: "Anggaran Tahun 1", name: "th1_anggaran", type: "number", placeholder: "0" },
-      { label: "Sumber Dana", name: "sumber_dana", type: "text", placeholder: "Sumber dana" },
-      { label: "Asal Usulan", name: "asal_usulan", type: "text", placeholder: "Asal usulan" },
-      { label: "SDGs", name: "sdgs", type: "text", placeholder: "SDGs terkait" },
-      { label: "Pola Pelaksanaan", name: "pola_pelaksanaan", type: "select", options: ["Swakelola", "Kerjasama Antar Desa", "Kerjasama Pihak ke-3"], value: "Swakelola" },
-    ],
+    fields: accessFields([
+      "Alamat", "Asal_usulan", "BIDANG", "Indikator", "KEGIATAN", "Kerjasama Antar Desa",
+      "Kerjasama Pihak ke_3", "LOKASI (RT/RW)", "Lokasi_Dusun", "No", "Paket_kegiatan", "Satuan",
+      "SDGS", "Sub_Bidang", "sumber dana", "swakelola", "th1", "th1 anggaran", "th2", "th2anggaran",
+      "th3", "th3anggaran", "th4", "th4anggaran", "th5", "th5anggaran", "th6", "th6anggaran",
+      "th7", "th7anggaran", "th8", "th8anggaran",
+    ], ["Alamat"]),
   },
   input_musdus_kelompok: {
     key: "input_musdus_kelompok",
     icon: "messages-square",
     title: "Mudus/Kelompok",
     description: "Form mengikuti tabel musdus / kelompok RPJMDes.",
-    fields: [
-      { label: "Nomor", name: "nomor", type: "number", placeholder: "1" },
-      { label: "Jenis Musdus/Nama Musdus", name: "jenis_musdus", type: "text", placeholder: "Nama musdus/kelompok" },
-      { label: "Pemimpin", name: "pemimpin", type: "text", placeholder: "Nama pemimpin" },
-      { label: "Pemimpin Dari Unsur", name: "pemimpin_unsur", type: "text", placeholder: "Unsur pemimpin" },
-      { label: "Notulen", name: "notulen", type: "text", placeholder: "Nama notulen" },
-      { label: "Lokasi (Bila Dusun)", name: "lokasi_dusun", type: "number", placeholder: "Kode lokasi" },
-      { label: "Jam", name: "jam", type: "text", placeholder: "Contoh: 09.00 WIB" },
-      { label: "Hari Dan Tanggal", name: "hari_tanggal", type: "text", placeholder: "Hari dan tanggal" },
-      { label: "Tempat", name: "tempat", type: "text", placeholder: "Tempat musdus/kelompok" },
-      { label: "Nama Kepala Dusun/Kelompok", name: "nama_kepala_dusun_kelompok", type: "text", placeholder: "Nama kepala dusun/kelompok" },
-      { label: "Wakil Masyarakat", name: "wakil_masyarakat", type: "textarea", full: true, placeholder: "Daftar wakil masyarakat" },
-    ],
+    fields: accessFields([
+      "Hari Dan Tanggal", "Jabatan Kepala Dusun/Kepala Kelompok", "Jam", "Jenis Musdus/Nama Musdus",
+      "Lokasi (Bila Dusun)", "Nama Kepala Dusun/Kepala Kelompok", "Narsum 1", "narsum 1 Dari Unsur",
+      "Narsum 2", "narsum 2 Dari Unsur", "Narsum 3", "narsum 3 Dari Unsur", "Narsum 4",
+      "narsum 4 Dari Unsur", "Narsum 5", "narsum 5 Dari Unsur", "nomor", "Notulen",
+      "Notulen Dari Unsur", "Pemimpin", "Pemimpin Dari Unsur", "Tempat (musdus/kelompok)", "Wakil Masyarakat",
+    ]),
+  },
+  sketsa_desa: {
+    key: "sketsa_desa", icon: "map", title: "Sketsa Desa",
+    description: "Input unsur, kondisi, masalah, dan potensi pada sketsa desa.",
+    fields: accessFields(["No", "Unsur Sketsa Desa", "Kondisi", "Masalah", "Potensi", "Keterangan"], ["Kondisi", "Masalah", "Potensi", "Keterangan"]),
+  },
+  bagan_kelembagaan_input: {
+    key: "bagan_kelembagaan_input", icon: "network", title: "Bagan Kelembagaan",
+    description: "Input data kelembagaan desa dan hubungan antar-lembaga.",
+    fields: accessFields(["No", "Nama Lembaga", "Dasar Hukum", "Jumlah Pengurus", "Ruang Lingkup Kegiatan", "Keterangan"]),
+  },
+  kalender_musim: {
+    key: "kalender_musim", icon: "calendar-days", title: "Kalender Musim",
+    description: "Input kejadian, kegiatan, dan kondisi desa menurut bulan.",
+    fields: accessFields(["No", "Masalah/Kegiatan", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember", "Keterangan"]),
+  },
+  arah_kebijakan: {
+    key: "arah_kebijakan", icon: "route", title: "Arah Kebijakan",
+    description: "Input arah kebijakan pembangunan desa selama periode RPJMDesa.",
+    fields: accessFields(["No", "Bidang", "Arah Kebijakan", "Strategi", "Sasaran", "Indikator"], ["Arah Kebijakan", "Strategi"]),
   },
   program_masuk_desa: {
     key: "program_masuk_desa",
     icon: "building-2",
     title: "Program Masuk Desa",
     description: "Form mengikuti tabel masuk desa.",
-    fields: [
-      { label: "No Bidang", name: "no_bidang", type: "text", placeholder: "Kode bidang" },
-      { label: "Bidang", name: "bidang", type: "text", placeholder: "Nama bidang" },
-      { label: "No Kegiatan", name: "no_kegiatan", type: "text", placeholder: "Nomor kegiatan" },
-      { label: "Nama Program/Kegiatan", name: "nama_program_kegiatan", type: "text", placeholder: "Nama program/kegiatan" },
-      { label: "Pelaksana Pemerintah", name: "pelaksana_pemerintah", type: "text", placeholder: "Pusat/Provinsi/Kabupaten" },
-      { label: "SDGs", name: "sdgs", type: "text", placeholder: "SDGs terkait" },
-      { label: "Tahun Pelaksanaan", name: "tahun_pelaksanaan", type: "number", placeholder: "2026" },
-      { label: "Lokasi Kegiatan", name: "lokasi_kegiatan", type: "text", placeholder: "Dusun/RT/RW" },
-      { label: "Volume", name: "volume", type: "text", placeholder: "Volume" },
-      { label: "Satuan", name: "satuan", type: "text", placeholder: "Satuan" },
-      { label: "Total Pagu", name: "total_pagu", type: "number", placeholder: "0" },
-    ],
+    fields: accessFields([
+      "Bidang", "Lokasi Kegiatan (Dusun/RT/RW)", "Nama Program/ Kegiatan", "No Bidang",
+      "No Kegiatan", "Pemerintah/Pemerintah Prov/ Pemerintah Pusat", "Satuan", "SDGS",
+      "Tahun Pelaksanaan", "Total Pagu", "Volume",
+    ]),
   },
   input_rekomendasi_sdgs: {
     key: "input_rekomendasi_sdgs",
     icon: "sparkles",
     title: "Input Rekomendasi SDGs",
     description: "Form mengikuti tabel eval_sdgs dan usulan sdgs.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Indikator", name: "indikator", type: "number", placeholder: "0" },
-      { label: "Nama Program", name: "nama_program", type: "text", placeholder: "Nama program" },
-      { label: "Mendukung SDGs Desa Ke-", name: "mendukung_sdgs", type: "number", placeholder: "0" },
-      { label: "Data Eksisting", name: "data_eksisting", type: "text", placeholder: "Kondisi awal" },
-      { label: "Volume", name: "volume", type: "number", placeholder: "0" },
-      { label: "Satuan", name: "satuan", type: "text", placeholder: "Satuan" },
-      { label: "Jumlah (Rp)", name: "jumlah_rp", type: "number", placeholder: "0" },
-      { label: "Sumber", name: "sumber", type: "text", placeholder: "Sumber pendanaan" },
-      { label: "Pola", name: "pola", type: "text", placeholder: "Pola pelaksanaan" },
-    ],
+    fields: accessFields([
+      "Data Eksisting", "indikator", "Jumlah (Rp)", "Mendukung SDGs Desa Ke-", "Nama Program",
+      "No", "pola", "Satuan", "Sumber", "Tahun1", "Tahun1pelaksanaan", "Tahun2", "Tahun2pelaksanaan",
+      "Tahun3", "Tahun3pelaksanaan", "Tahun4", "Tahun4pelaksanaan", "Tahun5", "Tahun5pelaksanaan",
+      "Tahun6", "Tahun6pelaksanaan", "Tahun7", "Tahun7pelaksanaan", "Tahun8", "Tahun8pelaksanaan",
+      "Tahun9", "Tahun9pelaksanaan", "Volume",
+    ], ["Data Eksisting", "Nama Program"]),
   },
   input_prioritas: {
     key: "input_prioritas",
     icon: "arrow-up-narrow-wide",
     title: "Input Penentuan/Prioritas",
     description: "Form prioritas tindakan pemecahan masalah dan peringkat kegiatan.",
-    fields: [
-      { label: "No Prioritas", name: "no_prioritas", type: "number", placeholder: "1" },
-      { label: "Masalah/Kebutuhan", name: "masalah_kebutuhan", type: "text", placeholder: "Masalah atau kebutuhan" },
-      { label: "Tindakan Pemecahan", name: "tindakan_pemecahan", type: "text", placeholder: "Tindakan pemecahan" },
-      { label: "Bidang", name: "bidang", type: "text", placeholder: "Bidang kegiatan" },
-      { label: "Nilai Prioritas", name: "nilai_prioritas", type: "number", placeholder: "0" },
-      { label: "Keterangan", name: "keterangan", type: "textarea", full: true, placeholder: "Catatan prioritas" },
-    ],
+    fields: accessFields([
+      "Dirasakan Oleh Banyak Orang", "Masalah", "Menghambat Peningkatan Pendapatan", "No",
+      "Paket_Kegiatan", "Sangat Parah/ Mendesak", "Sering Terjadi/ Berulang",
+      "Tersedia Potensi Untuk Memecahkan Masalah",
+    ]),
   },
   inventaris_masalah: {
     key: "inventaris_masalah",
     icon: "circle-alert",
     title: "Daftar Inventaris Masalah",
     description: "Form inventaris masalah untuk bahan olah data perencanaan.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Bidang", name: "bidang", type: "text", placeholder: "Bidang masalah" },
-      { label: "Masalah", name: "masalah", type: "textarea", full: true, placeholder: "Uraian masalah" },
-      { label: "Lokasi", name: "lokasi", type: "text", placeholder: "Dusun/RT/RW" },
-      { label: "Penyebab", name: "penyebab", type: "text", placeholder: "Penyebab masalah" },
-      { label: "Alternatif Pemecahan", name: "alternatif_pemecahan", type: "textarea", full: true, placeholder: "Alternatif pemecahan masalah" },
-    ],
+    fields: accessFields(["Jenis Bidang/Urusan", "Kategori Potensi", "Kegiatan", "Keterangan", "Lembaga (bila Kelembagaan)", "Masalah", "No", "Penyebab", "Potensi", "Usulan"], ["Keterangan"]),
   },
   inventaris_potensi: {
     key: "inventaris_potensi",
     icon: "leaf",
     title: "Daftar Inventaris Potensi",
     description: "Form inventaris potensi desa untuk penyusunan RPJMDesa.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Kategori Potensi", name: "kategori_potensi", type: "text", placeholder: "Kategori potensi" },
-      { label: "Potensi", name: "potensi", type: "textarea", full: true, placeholder: "Uraian potensi" },
-      { label: "Lokasi", name: "lokasi", type: "text", placeholder: "Lokasi potensi" },
-      { label: "Manfaat", name: "manfaat", type: "textarea", full: true, placeholder: "Manfaat potensi bagi desa" },
-    ],
+    fields: accessFields(["Kategori Potensi", "No", "Penjelasan / Contoh"], ["Penjelasan / Contoh"]),
   },
   gagasan_dusun: {
     key: "gagasan_dusun",
     icon: "lightbulb",
     title: "Daftar Gagasan Dusun/Kelompok",
     description: "Form gagasan dusun/kelompok untuk rekapitulasi usulan RPJMDesa.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Dusun/Kelompok", name: "dusun_kelompok", type: "text", placeholder: "Nama dusun/kelompok" },
-      { label: "Gagasan Kegiatan", name: "gagasan_kegiatan", type: "textarea", full: true, placeholder: "Uraian gagasan kegiatan" },
-      { label: "Pengusul", name: "pengusul", type: "text", placeholder: "Nama pengusul" },
-      { label: "Lokasi", name: "lokasi", type: "text", placeholder: "Lokasi kegiatan" },
-      { label: "Prakiraan Volume/Satuan", name: "prakiraan_volume_satuan", type: "text", placeholder: "Contoh: 250 meter" },
-    ],
+    fields: accessFields(["LK", "Lokasi Kegiatan", "No", "NO SDGS", "Pengusul", "PR", "Prakiraan Volume & Satuan", "RTM", "SDGs Ke-", "Usulan Kegiatan"]),
   },
   tim_penyusun: {
     key: "tim_penyusun",
     icon: "users-round",
     title: "Susunan Tim Penyusun",
     description: "Form mengikuti tabel tim RPJMDes.",
-    fields: [
-      { label: "No", name: "no", type: "text", placeholder: "1" },
-      { label: "Nama", name: "nama", type: "text", placeholder: "Nama anggota tim" },
-      { label: "Jabatan", name: "jabatan", type: "text", placeholder: "Jabatan perangkat/lembaga" },
-      { label: "Kedudukan", name: "kedudukan", type: "select", options: ["Pembina", "Ketua", "Sekretaris", "Anggota", "Narasumber"], value: "Anggota" },
-    ],
+    fields: accessFields(["Jabatan", "Kedudukan", "Nama", "No"]),
   },
   dasar_hukum_perdes: {
     key: "dasar_hukum_perdes",
     icon: "scroll-text",
     title: "Input Dasar Hukum Perdes",
     description: "Form mengikuti tabel dasar hukum RPJMDes.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Isi Dasar Hukum", name: "isi_dasar_hukum", type: "textarea", full: true, placeholder: "Tuliskan isi dasar hukum Perdes" },
-    ],
+    fields: accessFields(["isi dasar hukum", "no"], ["isi dasar hukum"]),
   },
   dasar_hukum_sk: {
     key: "dasar_hukum_sk",
     icon: "file-check-2",
     title: "Input Dasar Hukum SK",
     description: "Form mengikuti tabel dasar hukum sk rpjmdeS.",
-    fields: [
-      { label: "No", name: "no", type: "number", placeholder: "1" },
-      { label: "Isi Dasar Hukum", name: "isi_dasar_hukum", type: "textarea", full: true, placeholder: "Tuliskan isi dasar hukum SK" },
-    ],
+    fields: accessFields(["isi dasar hukum", "no"], ["isi dasar hukum"]),
   },
   ketentuan_umum_perdes: {
     key: "ketentuan_umum_perdes",
     icon: "book-open-text",
     title: "Isi Ketentuan Umum Perdes",
     description: "Form uraian ketentuan umum untuk naskah Perdes RPJMDesa.",
-    fields: [
-      { label: "No Uraian", name: "no_uraian", type: "number", placeholder: "1" },
-      { label: "Istilah", name: "istilah", type: "text", placeholder: "Contoh: Desa" },
-      { label: "Uraian Ketentuan", name: "uraian_ketentuan", type: "textarea", full: true, placeholder: "Isi ketentuan umum Perdes" },
-    ],
+    fields: accessFields(["no", "uraian"], ["uraian"]),
   },
   cover: createReportTemplate("cover", "Cover"),
   cover_lampiran: createReportTemplate("cover_lampiran", "Cover Lampiran"),
@@ -669,6 +538,136 @@ const materialFormTemplates = {
   rancangan_rpjmdesa: createReportTemplate("rancangan_rpjmdesa", "Rancangan RPJMDesa"),
   dok_visi_misi_kades: createReportTemplate("dok_visi_misi_kades", "Dok. Visi Misi Kades"),
   dok_pokok_pikiran_bpd: createReportTemplate("dok_pokok_pikiran_bpd", "Dok. Pokok Pikiran BPD"),
+  pengkajian_tindakan: createReportTemplate("pengkajian_tindakan", "Pengkajian Tindakan Pemecahan Masalah"),
+  penentuan_tindakan: createReportTemplate("penentuan_tindakan", "Penentuan Tindakan Masalah"),
+  rekap_gagasan_dusun: createReportTemplate("rekap_gagasan_dusun", "Rekapitulasi Gagasan Dusun/Kelompok"),
+  sketsa_desa_laporan: createReportTemplate("sketsa_desa_laporan", "Sketsa Desa"),
+  kalender_musim_laporan: createReportTemplate("kalender_musim_laporan", "Kalender Musim"),
+  ba_musrenbangdes: createReportTemplate("ba_musrenbangdes", "BA Musrenbangdes"),
+  ba_penetapan: createReportTemplate("ba_penetapan", "BA Pembahasan/Penetapan"),
+  rkp_data_umum: {
+    key: "rkp_data_umum", icon: "database", title: "Input Data Umum RKPDesa",
+    description: "Identitas desa dan data pokok dokumen RKPDesa.",
+    fields: accessFields(["Desa", "Kecamatan", "Kabupaten", "Provinsi", "Alamat Desa", "Nama Kepala Desa", "Nama Sekretaris Desa", "Nama Ketua BPD", "Nama Ketua Tim Penyusun", "Tahun Anggaran", "Nama RKPDesa", "No Perdes RKPDesa", "Status Perdes RKPDesa", "Tanggal Penyusunan", "Tanggal Penetapan Perdes", "Tanggal Pengundangan Perdes", "No SK Tim Penyusun", "Logo Kabupaten", "Foto Kepala Desa", "Gambar Cover RKPDesa"], ["Alamat Desa", "Logo Kabupaten", "Foto Kepala Desa", "Gambar Cover RKPDesa"]),
+  },
+  rkp_daftar_isi: {key:"rkp_daftar_isi",icon:"list-tree",title:"Input Daftar Isi RKPDesa",description:"Input susunan daftar isi dokumen RKPDesa.",fields:accessFields(["Kode","Kode Uraian","Uraian","Isi","Halaman"],["Uraian","Isi"])},
+  rkp_misi_desa: {key:"rkp_misi_desa",icon:"target",title:"Input Misi Desa",description:"Input misi desa sebagai acuan RKPDesa.",fields:accessFields(["No Urut","Misi Desa"],["Misi Desa"])},
+  rkp_profil_desa: {key:"rkp_profil_desa",icon:"map-pinned",title:"Input Profil Desa",description:"Profil desa dalam subbagian yang sama dengan aplikasi Access.",fields:detailedProfileFields},
+  rkp_ba_tim_input: {key:"rkp_ba_tim_input",icon:"file-signature",title:"Input BA Tim",description:"Data berita acara pembentukan tim penyusun RKPDesa.",fields:accessFields(["Nomor Berita Acara","Hari","Tanggal","Bulan","Tahun","Pukul","Tempat","Pimpinan Rapat","Notulen","Agenda","Hasil Kesepakatan","Keterangan"],["Agenda","Hasil Kesepakatan","Keterangan"])},
+  rkp_tim_penyusun: {
+    key: "rkp_tim_penyusun", icon: "users-round", title: "Susunan Tim Penyusun RKPDesa",
+    description: "Daftar tim penyusun beserta kedudukan dan jabatannya.",
+    fields: accessFields(["No", "Nama", "Jabatan", "Kedudukan dalam Tim", "Unsur", "Keterangan"]),
+  },
+  rkp_musdes: {
+    key: "rkp_musdes", icon: "messages-square", title: "Input Musdes RKPDesa",
+    description: "Data pelaksanaan musyawarah desa penyusunan RKPDesa.",
+    fields: accessFields(["Nomor", "Jenis Musdes", "Hari", "Tanggal", "Pukul", "Tempat", "Pemimpin", "Pemimpin dari Unsur", "Notulen", "Notulen dari Unsur", "Narasumber 1", "Narasumber 1 dari Unsur", "Narasumber 2", "Narasumber 2 dari Unsur", "Wakil Masyarakat", "Pokok Pembahasan", "Hasil Musyawarah"], ["Pokok Pembahasan", "Hasil Musyawarah"]),
+  },
+  rkp_rktl: {
+    key: "rkp_rktl", icon: "calendar-clock", title: "Input RKTL RKPDesa",
+    description: "Rencana kerja tindak lanjut penyusunan RKPDesa.",
+    fields: accessFields(["No", "Uraian Kegiatan", "Jenis", "Hari", "Tanggal", "Bulan", "Tahun", "Pukul", "Tempat", "Penanggung Jawab", "Keterangan"], ["Uraian Kegiatan", "Keterangan"]),
+  },
+  rkp_pagu_indikatif: {
+    key: "rkp_pagu_indikatif", icon: "badge-dollar-sign", title: "Pagu Indikatif Desa",
+    description: "Sumber dan besaran pagu indikatif untuk penyusunan RKPDesa.",
+    fields: accessFields(["No", "Sumber Dana", "Uraian", "Tahun Anggaran", "Jumlah (Rp)", "Keterangan"], ["Uraian", "Keterangan"]),
+  },
+  rkp_input_masalah: {key:"rkp_input_masalah",icon:"circle-alert",title:"Input Masalah",description:"Pencermatan masalah dari dokumen RPJMDesa untuk tahun RKPDesa.",fields:accessFields(["No","Bidang","Sub Bidang","Kegiatan RPJMDesa","Lokasi","Masalah","Penyebab","Potensi","Alternatif Tindakan","Keterangan"],["Masalah","Penyebab","Potensi","Alternatif Tindakan","Keterangan"])},
+  rkp_rekomendasi_sdgs: {key:"rkp_rekomendasi_sdgs",icon:"sparkles",title:"Input Rekomendasi SDGs",description:"Rekomendasi program dan kegiatan berdasarkan SDGs Desa.",fields:accessFields(["No","Indikator","Data Eksisting","Nama Program","Volume","Satuan","Jumlah (Rp)","Sumber Dana","Mendukung SDGs Desa Ke-","Pola Pelaksanaan","Tahun Pelaksanaan"],["Data Eksisting","Nama Program"])},
+  rkp_evaluasi_sebelumnya: {key:"rkp_evaluasi_sebelumnya",icon:"history",title:"Evaluasi RKPDesa Sebelumnya",description:"Evaluasi pelaksanaan program dan kegiatan RKPDesa tahun sebelumnya.",fields:accessFields(["No","Bidang","Sub Bidang","Kegiatan","Lokasi","Target Volume","Realisasi Volume","Target Anggaran","Realisasi Anggaran","Capaian (%)","Kendala","Tindak Lanjut","Keterangan"],["Kendala","Tindak Lanjut","Keterangan"])},
+  rkp_program_masuk: {
+    key: "rkp_program_masuk", icon: "building-2", title: "Program Masuk Desa",
+    description: "Program pemerintah dan pihak lain yang masuk ke desa.",
+    fields: accessFields(["No", "Bidang", "Sub Bidang", "Nama Program/Kegiatan", "Lokasi Kegiatan (Dusun/RT/RW)", "Volume", "Satuan", "Total Pagu", "Sumber Dana", "Pemerintah/Pemerintah Provinsi/Pemerintah Pusat", "Tahun Pelaksanaan", "SDGs Desa", "Keterangan"]),
+  },
+  rkp_rancangan_kegiatan: {
+    key: "rkp_rancangan_kegiatan", icon: "notebook-tabs", title: "Rancangan Kegiatan RKPDesa",
+    description: "Rancangan kegiatan berdasarkan hasil pencermatan dan musyawarah desa.",
+    fields: accessFields(["No", "Bidang", "Sub Bidang", "Jenis Kegiatan", "Lokasi", "Volume", "Satuan", "Sasaran/Manfaat", "Waktu Pelaksanaan", "Pola Pelaksanaan", "Pelaksana Kegiatan", "Sumber Dana", "Prakiraan Biaya (Rp)", "SDGs Desa", "Keterangan"], ["Sasaran/Manfaat", "Keterangan"]),
+  },
+  rkp_matrik: {
+    key: "rkp_matrik", icon: "table-properties", title: "Matrik RKPDesa",
+    description: "Matrik program dan kegiatan RKPDesa tahun berjalan.",
+    fields: accessFields(["No", "Bidang", "Sub Bidang", "Kegiatan", "Lokasi", "Volume", "Satuan", "Sasaran", "Waktu Pelaksanaan", "Jumlah (Rp)", "Sumber Dana", "Pola Pelaksanaan", "Pelaksana", "Indikator", "SDGs", "Keterangan"], ["Keterangan"]),
+  },
+  rkp_prioritas: {
+    key: "rkp_prioritas", icon: "list-ordered", title: "Penentuan Prioritas Kegiatan",
+    description: "Penilaian dan pemeringkatan usulan kegiatan RKPDesa.",
+    fields: accessFields(["No", "Usulan Kegiatan", "Mendesak", "Dirasakan Banyak Orang", "Menghambat Pendapatan", "Sering Terjadi/Berulang", "Tersedia Potensi", "Nilai", "Peringkat", "Keterangan"]),
+  },
+  rkp_pendapatan: {
+    key: "rkp_pendapatan", icon: "circle-dollar-sign", title: "Rencana Pendapatan Desa",
+    description: "Rencana pendapatan untuk tahun anggaran RKPDesa.",
+    fields: accessFields(["Tahun Anggaran", "Pendapatan Asli Desa (PAD)", "Dana Desa (DDS)", "Alokasi Dana Desa (ADD)", "Bagi Hasil Pajak dan Retribusi (PBH)", "Bantuan Keuangan Provinsi", "Bantuan Keuangan Kabupaten", "Pendapatan Lain-lain", "Jumlah Pendapatan", "Keterangan"]),
+  },
+  rkp_belanja: {
+    key: "rkp_belanja", icon: "receipt-text", title: "Rencana Belanja Desa",
+    description: "Rencana belanja per bidang dan kegiatan.",
+    fields: accessFields(["No", "Bidang", "Sub Bidang", "Kegiatan", "Belanja Pegawai", "Belanja Barang dan Jasa", "Belanja Modal", "Belanja Tak Terduga", "Jumlah Belanja", "Sumber Dana", "Keterangan"]),
+  },
+  rkp_pembiayaan: {
+    key: "rkp_pembiayaan", icon: "landmark", title: "Rencana Pembiayaan Desa",
+    description: "Penerimaan dan pengeluaran pembiayaan tahun anggaran.",
+    fields: accessFields(["No", "Jenis Pembiayaan", "Uraian", "Penerimaan Pembiayaan (Rp)", "Pengeluaran Pembiayaan (Rp)", "Pembiayaan Netto (Rp)", "Keterangan"], ["Uraian", "Keterangan"]),
+  },
+  rkp_dasar_hukum_perdes: {key:"rkp_dasar_hukum_perdes",icon:"scroll-text",title:"Dasar Hukum Perdes RKPDesa",description:"Dasar hukum penyusunan Perdes RKPDesa.",fields:accessFields(["No","Isi Dasar Hukum"],["Isi Dasar Hukum"])},
+  rkp_dasar_hukum_sk: {key:"rkp_dasar_hukum_sk",icon:"file-check-2",title:"Dasar Hukum SK Tim",description:"Dasar hukum penetapan tim penyusun RKPDesa.",fields:accessFields(["No","Isi Dasar Hukum"],["Isi Dasar Hukum"])},
+  rkp_ketentuan_umum: {key:"rkp_ketentuan_umum",icon:"book-open-text",title:"Ketentuan Umum Perdes RKPDesa",description:"Uraian istilah dan ketentuan umum pada Perdes.",fields:accessFields(["No","Uraian"],["Uraian"])},
+  rkp_cover: createReportTemplate("rkp_cover", "Cover RKPDesa"),
+  rkp_dokumen: createReportTemplate("rkp_dokumen", "Dokumen RKPDesa"),
+  rkp_perdes: createReportTemplate("rkp_perdes", "Perdes RKPDesa"),
+  rkp_sk_tim: createReportTemplate("rkp_sk_tim", "SK Tim Penyusun RKPDesa"),
+  rkp_ba_tim: createReportTemplate("rkp_ba_tim", "BA Pembentukan Tim"),
+  rkp_ba_musdes: createReportTemplate("rkp_ba_musdes", "BA Musdes RKPDesa"),
+  rkp_ba_musrenbang: createReportTemplate("rkp_ba_musrenbang", "BA Musrenbangdes"),
+  rkp_daftar_hadir: createReportTemplate("rkp_daftar_hadir", "Daftar Hadir"),
+  rkp_lampiran_matrik: createReportTemplate("rkp_lampiran_matrik", "Lampiran Matrik RKPDesa"),
+  rkp_pendahuluan: createReportTemplate("rkp_pendahuluan", "Pendahuluan"),
+  rkp_laporan_daftar_isi: createReportTemplate("rkp_laporan_daftar_isi", "Daftar Isi"),
+  rkp_bab_1: createReportTemplate("rkp_bab_1", "BAB I"),
+  rkp_bab_2: createReportTemplate("rkp_bab_2", "BAB II"),
+  rkp_bab_3: createReportTemplate("rkp_bab_3", "BAB III"),
+  rkp_bab_4: createReportTemplate("rkp_bab_4", "BAB IV"),
+  rkp_bab_5: createReportTemplate("rkp_bab_5", "BAB V"),
+  rkp_checklist: createReportTemplate("rkp_checklist", "Checklist RKPDesa"),
+  rkp_usulan_sdgs: createReportTemplate("rkp_usulan_sdgs", "Usulan Masyarakat Berdasarkan SDGs Desa"),
+  rkp_kerjasama: createReportTemplate("rkp_kerjasama", "Daftar Kerjasama"),
+  rkp_rancangan_laporan: createReportTemplate("rkp_rancangan_laporan", "Rancangan RKPDesa"),
+  rkp_du_rkp: createReportTemplate("rkp_du_rkp", "DU-RKP"),
+  rkp_ba_rancangan: createReportTemplate("rkp_ba_rancangan", "BA Hasil Penyusunan Rancangan RKP Desa"),
+  rkp_ba_pengesahan: createReportTemplate("rkp_ba_pengesahan", "BA Musdes Pengesahan RKP Desa"),
+  apb_data: {key:"apb_data",icon:"database",title:"Data APBDesa",description:"Identitas desa dan dokumen APBDesa.",fields:[
+    accessField("Provinsi"),accessField("Kabupaten"),accessField("Kecamatan"),accessField("Desa"),accessField("Alamat Desa","textarea"),accessField("Nama Kepala Desa"),accessField("Nama Sekretaris Desa"),accessField("Tahun Anggaran"),
+    {label:"Jenis Dokumen",name:"jenis_dokumen",type:"select",options:["APBDesa","Perubahan APBDesa"],value:"APBDesa"},accessField("Nomor Perdes"),accessField("Tanggal Perdes","date"),accessField("Nomor Perkades"),accessField("Tanggal Perkades","date"),accessField("Logo Kabupaten","file")
+  ]},
+  apb_akun: {key:"apb_akun",icon:"binary",title:"Akun/Rekening",description:"Referensi kode dan nama akun APBDesa.",fields:accessFields(["Kode Akun","Nama Akun","Kelompok","Jenis","Objek","Rincian Objek","Keterangan"],["Keterangan"])},
+  apb_bidang: {key:"apb_bidang",icon:"layout-list",title:"Bidang",description:"Referensi bidang APBDesa.",fields:accessFields(["Kode Bidang","Nama Bidang","Uraian Bidang","Keterangan"],["Uraian Bidang","Keterangan"])},
+  apb_subbidang: {key:"apb_subbidang",icon:"list-tree",title:"Sub Bidang",description:"Referensi sub bidang berdasarkan bidang APBDesa.",fields:accessFields(["Kode Bidang","Bidang","Kode Sub Bidang","Nama Sub Bidang","Keterangan"],["Keterangan"])},
+  apb_kegiatan: {key:"apb_kegiatan",icon:"list-checks",title:"Input Kegiatan",description:"Daftar kegiatan berdasarkan bidang dan sub bidang.",fields:[
+    accessField("Kode Bidang"),accessField("Bidang"),accessField("Kode Sub Bidang"),accessField("Sub Bidang"),accessField("Kode Kegiatan"),accessField("Nama Kegiatan"),accessField("Keluaran/Output"),accessField("Lokasi"),accessField("Volume"),accessField("Satuan"),accessField("Sasaran"),accessField("Waktu Pelaksanaan"),accessField("Tagging")
+  ]},
+  apb_paket_kegiatan: {key:"apb_paket_kegiatan",icon:"package-plus",title:"Input Paket Kegiatan",description:"Paket, pelaksana, lokasi, volume, dan sumber dana kegiatan.",fields:accessFields(["Kode Kegiatan","Nama Kegiatan","No Paket","Nama Paket Kegiatan","Pelaksana Kegiatan","Lokasi","Volume","Satuan","Sumber Dana","Pagu Anggaran","Keterangan"],["Keterangan"])},
+  apb_pendapatan: {key:"apb_pendapatan",icon:"circle-dollar-sign",title:"Pendapatan",description:"Rincian anggaran pendapatan desa.",fields:accessFields(["Kode Rekening","Kelompok Pendapatan","Jenis Pendapatan","Objek Pendapatan","Rincian Objek","Uraian","Volume","Satuan","Harga Satuan","Anggaran","Sumber Dana","Keterangan"],["Keterangan"])},
+  apb_pendapatan_perubahan: {key:"apb_pendapatan_perubahan",icon:"refresh-cw",title:"Pendapatan Perubahan",description:"Anggaran pendapatan sebelum dan setelah perubahan.",fields:accessFields(["Kode Rekening","Uraian Pendapatan","Anggaran Sebelum","Anggaran Setelah","Bertambah/Berkurang","Persentase","Keterangan"],["Keterangan"])},
+  apb_belanja: {key:"apb_belanja",icon:"receipt-text",title:"Belanja",description:"Rincian belanja per bidang, kegiatan, dan rekening.",fields:accessFields(["Kode Bidang","Bidang","Kode Sub Bidang","Sub Bidang","Kode Kegiatan","Kegiatan","Kode Rekening","Jenis Belanja","Objek Belanja","Rincian Objek","Uraian Belanja","Volume","Satuan","Harga Satuan","Jumlah Anggaran","Sumber Dana","Tagging","Keterangan"],["Keterangan"])},
+  apb_belanja_perubahan: {key:"apb_belanja_perubahan",icon:"refresh-cw",title:"Belanja Perubahan",description:"Rincian belanja sebelum dan setelah perubahan.",fields:accessFields(["Kode Bidang","Bidang","Kegiatan","Kode Rekening","Uraian Belanja","Anggaran Sebelum","Anggaran Setelah","Bertambah/Berkurang","Sumber Dana","Keterangan"],["Keterangan"])},
+  apb_pembiayaan_1: {key:"apb_pembiayaan_1",icon:"landmark",title:"Penerimaan Pembiayaan",description:"Rincian penerimaan pembiayaan APBDesa.",fields:accessFields(["Kode Rekening","Kelompok Pembiayaan","Jenis Pembiayaan","Objek Pembiayaan","Rincian Objek","Uraian","Volume","Satuan","Harga Satuan","Jumlah Anggaran","Keterangan"],["Keterangan"])},
+  apb_pembiayaan_1_perubahan: {key:"apb_pembiayaan_1_perubahan",icon:"refresh-cw",title:"Perubahan Penerimaan Pembiayaan",description:"Penerimaan pembiayaan sebelum dan setelah perubahan.",fields:accessFields(["Kode Rekening","Uraian","Anggaran Sebelum","Anggaran Setelah","Bertambah/Berkurang","Keterangan"],["Keterangan"])},
+  apb_pembiayaan_2: {key:"apb_pembiayaan_2",icon:"hand-coins",title:"Pengeluaran Pembiayaan",description:"Rincian pengeluaran pembiayaan APBDesa.",fields:accessFields(["Kode Rekening","Kelompok Pembiayaan","Jenis Pembiayaan","Objek Pembiayaan","Rincian Objek","Uraian","Volume","Satuan","Harga Satuan","Jumlah Anggaran","Keterangan"],["Keterangan"])},
+  apb_pembiayaan_2_perubahan: {key:"apb_pembiayaan_2_perubahan",icon:"refresh-cw",title:"Perubahan Pengeluaran Pembiayaan",description:"Pengeluaran pembiayaan sebelum dan setelah perubahan.",fields:accessFields(["Kode Rekening","Uraian","Anggaran Sebelum","Anggaran Setelah","Bertambah/Berkurang","Keterangan"],["Keterangan"])},
+  apb_tagging: {key:"apb_tagging",icon:"tags",title:"Tagging",description:"Referensi tagging kegiatan dan belanja.",fields:accessFields(["Kode Tagging","Nama Tagging","Keterangan"],["Keterangan"])},
+  apb_satuan: {key:"apb_satuan",icon:"ruler",title:"Satuan",description:"Referensi satuan volume dan harga.",fields:accessFields(["Kode Satuan","Nama Satuan","Jenis Satuan","Keterangan"],["Keterangan"])},
+  apb_user: {key:"apb_user",icon:"users",title:"User",description:"Pengguna dan hak akses aplikasi APBDesa.",fields:[accessField("User ID"),accessField("Nama"),{label:"Status",name:"status",type:"select",options:["Administrator","Operator","Viewer"],value:"Operator"},accessField("Sandi","password"),{label:"Aktif",name:"aktif",type:"select",options:["Ya","Tidak"],value:"Ya"}]},
+  apb_laporan_apbdes: createReportTemplate("apb_laporan_apbdes","APBDesa"),
+  apb_laporan_pendapatan: createReportTemplate("apb_laporan_pendapatan","Pendapatan"),
+  apb_laporan_belanja: createReportTemplate("apb_laporan_belanja","Belanja"),
+  apb_laporan_pembiayaan_1: createReportTemplate("apb_laporan_pembiayaan_1","Pembiayaan 1"),
+  apb_laporan_pembiayaan_2: createReportTemplate("apb_laporan_pembiayaan_2","Pembiayaan 2"),
+  apb_penjabaran: createReportTemplate("apb_penjabaran","Penjabaran APBDesa"),
+  apb_laporan_perubahan: createReportTemplate("apb_laporan_perubahan","Perubahan APBDesa"),
+  apb_penjabaran_perubahan: createReportTemplate("apb_penjabaran_perubahan","Penjabaran Perubahan APBDesa"),
 };
 
 const theme = {
@@ -774,85 +773,10 @@ function createMaterialField(field) {
 
   let control;
   if (field.type === "textarea") {
-    const container = document.createElement("div");
-    container.className = "paragraph-list-container";
-    container.style.cssText = "display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 8px;";
-
-    const listWrapper = document.createElement("div");
-    listWrapper.className = "paragraph-list-wrapper";
-    listWrapper.style.cssText = "display: flex; flex-direction: column; gap: 8px; width: 100%;";
-    container.append(listWrapper);
-
-    const hiddenInput = document.createElement("input");
-    hiddenInput.type = "hidden";
-    hiddenInput.name = field.name;
-    hiddenInput.value = field.value || "-";
-    container.append(hiddenInput);
-
-    const updateHiddenValue = () => {
-      const textareas = listWrapper.querySelectorAll(".paragraph-text");
-      const items = [];
-      textareas.forEach(ta => {
-        const val = ta.value.trim();
-        if (val) {
-          items.push(val);
-        }
-      });
-      hiddenInput.value = items.join("\n\n") || "-";
-    };
-
-    const addParagraphRow = (text = "") => {
-      const row = document.createElement("div");
-      row.className = "paragraph-item-row";
-      row.style.cssText = "display: flex; gap: 10px; align-items: center; width: 100%;";
-
-      const textInput = document.createElement("textarea");
-      textInput.rows = 2;
-      textInput.placeholder = field.placeholder || "Tuliskan paragraf...";
-      textInput.value = text;
-      textInput.style.cssText = "flex: 1; min-height: 50px; padding: 8px; border: 1px solid #d1d5db; outline: none; resize: vertical; border-radius: 4px;";
-      textInput.className = "paragraph-text";
-      textInput.addEventListener("input", updateHiddenValue);
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.type = "button";
-      deleteBtn.innerHTML = '<i data-lucide="trash-2"></i>';
-      deleteBtn.className = "btn btn-outline-danger";
-      deleteBtn.style.cssText = "padding: 6px 10px; min-height: 40px; display: flex; align-items: center; justify-content: center;";
-      deleteBtn.addEventListener("click", () => {
-        row.remove();
-        updateHiddenValue();
-      });
-
-      row.append(textInput, deleteBtn);
-      listWrapper.append(row);
-      updateHiddenValue();
-      if (window.lucide) lucide.createIcons();
-    };
-    container.addMissionRow = addMissionRow;
-
-    const initialText = field.value || "";
-    if (initialText && initialText !== "-") {
-      const paragraphs = initialText.split(/\n\n+/);
-      paragraphs.forEach(p => addParagraphRow(p));
-    } else {
-      addParagraphRow("");
-    }
-
-    const addBtn = document.createElement("button");
-    addBtn.type = "button";
-    addBtn.className = "btn btn-outline-primary align-self-start";
-    addBtn.style.cssText = "display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; padding: 6px 12px;";
-    addBtn.innerHTML = '<i data-lucide="plus"></i> Tambah Paragraf';
-    addBtn.addEventListener("click", () => {
-      addParagraphRow("");
-    });
-
-    container.append(addBtn);
-    label.append(container);
+    control = document.createElement("textarea");
+    control.rows = 4;
   } else if (field.type === "select") {
     control = document.createElement("select");
-    control.name = field.name;
     (field.options || []).forEach((optionLabel) => {
       const option = document.createElement("option");
       option.value = optionLabel;
@@ -860,169 +784,157 @@ function createMaterialField(field) {
       option.selected = optionLabel === field.value;
       control.append(option);
     });
-    label.append(control);
-  } else if (field.type === "mission_list") {
-    const container = document.createElement("div");
-    container.className = "mission-list-container";
-    container.style.cssText = "display: flex; flex-direction: column; gap: 16px; width: 100%; margin-top: 8px;";
-
-    const listWrapper = document.createElement("div");
-    listWrapper.className = "mission-list-wrapper";
-    listWrapper.style.cssText = "display: flex; flex-direction: column; gap: 12px; width: 100%;";
-    container.append(listWrapper);
-
-    const hiddenInput = document.createElement("input");
-    hiddenInput.type = "hidden";
-    hiddenInput.name = field.name;
-    hiddenInput.value = "-";
-    container.append(hiddenInput);
-
-    const updateHiddenValue = () => {
-      const rows = listWrapper.querySelectorAll(".mission-item-row");
-      const items = [];
-      rows.forEach(row => {
-        const noVal = row.querySelector(".mission-no").value.trim();
-        const txtVal = row.querySelector(".mission-text").value.trim();
-        if (noVal || txtVal) {
-          items.push(`${noVal}. ${txtVal}`);
-        }
-      });
-      hiddenInput.value = items.join(" | ") || "-";
-    };
-
-    const addMissionRow = (num = "", text = "") => {
-      const row = document.createElement("div");
-      row.className = "mission-item-row";
-      row.style.cssText = "display: flex; gap: 12px; align-items: center; width: 100%;";
-
-      const numInput = document.createElement("input");
-      numInput.type = "number";
-      numInput.placeholder = "No";
-      numInput.value = num;
-      numInput.style.cssText = "width: 70px; min-height: 44px; padding: 0 10px; border: 1px solid #d1d5db; outline: none; border-radius: 4px;";
-      numInput.className = "mission-no";
-      numInput.addEventListener("input", updateHiddenValue);
-
-      const textInput = document.createElement("textarea");
-      textInput.rows = 2;
-      textInput.placeholder = "Tuliskan misi desa";
-      textInput.value = text;
-      textInput.style.cssText = "flex: 1; min-height: 44px; padding: 10px; border: 1px solid #d1d5db; outline: none; resize: vertical; border-radius: 4px;";
-      textInput.className = "mission-text";
-      textInput.addEventListener("input", updateHiddenValue);
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.type = "button";
-      deleteBtn.innerHTML = '<i data-lucide="trash-2"></i>';
-      deleteBtn.className = "btn btn-outline-danger";
-      deleteBtn.style.cssText = "padding: 8px 12px; min-height: 44px; display: flex; align-items: center; justify-content: center;";
-      deleteBtn.addEventListener("click", () => {
-        row.remove();
-        updateHiddenValue();
-      });
-
-      row.append(numInput, textInput, deleteBtn);
-      listWrapper.append(row);
-      updateHiddenValue();
-      if (window.lucide) lucide.createIcons();
-    };
-    container.addMissionRow = addMissionRow;
-
-    addMissionRow("1", "");
-
-    const addBtn = document.createElement("button");
-    addBtn.type = "button";
-    addBtn.className = "btn btn-outline-primary align-self-start";
-    addBtn.style.cssText = "display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 16px;";
-    addBtn.innerHTML = '<i data-lucide="plus"></i> Tambah Misi';
-    addBtn.addEventListener("click", () => {
-      const nextNo = listWrapper.querySelectorAll(".mission-item-row").length + 1;
-      addMissionRow(String(nextNo), "");
-    });
-
-    container.append(addBtn);
-    label.append(container);
   } else {
     control = document.createElement("input");
     control.type = field.type || "text";
-    control.name = field.name;
-    if (field.placeholder) control.placeholder = field.placeholder;
-    if (field.value) control.value = field.value;
-    label.append(control);
   }
+
+  control.name = field.name;
+  if (field.placeholder) control.placeholder = field.placeholder;
+  if (field.value && field.type !== "select") control.value = field.value;
+  label.append(control);
 
   return label;
 }
 
-const profilSubForms = [
-  { key: "input_sejarah_desa", label: "INPUT SEJARAH DESA", icon: "book-open" },
-  { key: "input_sejarah_kades", label: "SEJARAH JABATAN KEPALA DESA", icon: "users" },
-  { key: "input_profil_pendidikan", label: "INPUT PROFIL TENTANG PENDIDIKAN", icon: "graduation-cap" },
-  { key: "input_profil_kesehatan", label: "INPUT PROFIL TENTANG KESEHATAN", icon: "activity" },
-  { key: "input_profil_pekerjaan", label: "INPUT PROFIL TENTANG MATA PENCAHARIAN", icon: "briefcase" },
-  { key: "input_profil_agama", label: "INPUT PROFIL TENTANG AGAMA", icon: "bookmark" },
-  { key: "input_profil_infrastruktur", label: "INPUT PROFIL TENTANG INFRASTRUKTUR", icon: "wrench" },
-  { key: "input_profil_irigasi", label: "INPUT PROFIL TENTANG IRIGASI", icon: "droplets" },
-  { key: "input_profil_pemukiman", label: "INPUT PROFIL TENTANG PEMUKIMAN", icon: "home" },
-  { key: "input_dusun", label: "INPUT DUSUN", icon: "map-pin" },
-  { key: "input_sotk", label: "INPUT SOTK", icon: "network" },
-  { key: "input_bpd", label: "INPUT DATA BPD", icon: "user-check" },
-  { key: "input_profil_penduduk", label: "INPUT PROFIL TENTANG PERTUMBUHAN PENDUDUK", icon: "trending-up" },
-  { key: "input_data_dusun", label: "INPUT DATA DUSUN", icon: "map" }
+const profileVillageSteps = [
+  {title:"Pertumbuhan Penduduk",description:"Pertumbuhan, jenis kelamin, dan jumlah keluarga.",icon:"users",fields:["Tahun Data","Jumlah Penduduk Tahun Ini","Jumlah Penduduk Tahun Sebelumnya","Pertumbuhan Penduduk (%)","Jumlah Laki-laki","Jumlah Perempuan","Jumlah Kepala Keluarga"]},
+  {title:"Angkatan Kerja",description:"Penduduk usia kerja, bekerja, dan pengangguran.",icon:"briefcase-business",fields:["Penduduk Usia Kerja","Angkatan Kerja","Bekerja","Pengangguran","Bukan Angkatan Kerja","Tingkat Partisipasi Angkatan Kerja (%)"]},
+  {title:"Pendidikan",description:"Tingkat pendidikan penduduk desa.",icon:"graduation-cap",fields:["Tidak/Belum Sekolah","Belum Tamat SD","Tamat SD/Sederajat","Tamat SMP/Sederajat","Tamat SMA/Sederajat","Diploma","Sarjana","Pascasarjana"]},
+  {title:"Kesehatan",description:"Kelahiran, kematian, gizi, sarana, dan tenaga kesehatan.",icon:"heart-pulse",fields:["Jumlah Kelahiran","Jumlah Kematian","Kematian Bayi","Ibu Hamil","Balita","Balita Gizi Buruk","Penyandang Disabilitas","Sarana Kesehatan","Tenaga Kesehatan"]},
+  {title:"Kemiskinan",description:"Keluarga sejahtera, penduduk miskin, dan bantuan sosial.",icon:"hand-heart",fields:["Jumlah Keluarga","Keluarga Pra Sejahtera","Keluarga Sejahtera I","Penduduk Miskin","Penerima Bantuan Sosial"]},
+  {title:"Ekonomi",description:"UMKM, BUM Desa, pasar, koperasi, serta kegiatan ekonomi.",icon:"chart-no-axes-combined",fields:["Jumlah UMKM","Jumlah BUM Desa","Pasar Desa","Koperasi","Usaha Perdagangan","Usaha Jasa","Pendapatan Rata-rata Penduduk"]},
+  {title:"Pertanian",description:"Jenis, komoditas, dan produksi pertanian tiga tahun.",icon:"sprout",fields:["Jenis","Komoditi","Produksi 3 Tahun Sebelumnya","Satuan 3 Tahun Sebelumnya","Produksi 2 Tahun Sebelumnya","Satuan 2 Tahun Sebelumnya","Produksi 1 Tahun Sebelumnya","Satuan 1 Tahun Sebelumnya"]},
+  {title:"Peternakan/Perikanan",description:"Populasi dan produksi peternakan atau perikanan.",icon:"fish",fields:["Jenis Ternak/Perikanan","Komoditas Ternak/Perikanan","Jumlah Populasi","Produksi per Tahun","Satuan Produksi"]},
+  {title:"Infrastruktur",description:"Jenis, lokasi, volume, kondisi, dan tahun pembangunan.",icon:"construction",fields:["Jenis Infrastruktur","Lokasi Infrastruktur","Volume","Satuan","Kondisi","Tahun Pembangunan","Keterangan Infrastruktur"]},
+  {title:"Irigasi",description:"Jaringan irigasi, luas layanan, kondisi, dan penerima manfaat.",icon:"waves",fields:["Nama/Jenis Irigasi","Lokasi Irigasi","Panjang (Meter)","Luas Layanan (Ha)","Kondisi Irigasi","Jumlah Penerima Manfaat"]},
+  {title:"Pemukiman",description:"Kondisi rumah, air bersih, sanitasi, dan listrik.",icon:"house",fields:["Jumlah Rumah","Rumah Layak Huni","Rumah Tidak Layak Huni","Akses Air Bersih","Akses Sanitasi","Akses Listrik","Jenis Permukiman","Keterangan Pemukiman"]},
 ];
 
-function renderMaterialForm(formKey = "dashboard") {
-  if (formKey === "input_profil_desa") {
-    formKey = "input_sejarah_desa";
+const accessDatasheetKeys = new Set([
+  "input_daftar_isi", "input_misi_desa", "input_profil_desa", "input_rktl", "input_musdes",
+  "input_renc_pendapatan", "input_matrik", "input_musdus_kelompok", "program_masuk_desa",
+  "input_rekomendasi_sdgs", "input_prioritas", "inventaris_masalah", "inventaris_potensi",
+  "gagasan_dusun", "tim_penyusun", "dasar_hukum_perdes", "dasar_hukum_sk", "ketentuan_umum_perdes",
+  "sketsa_desa", "bagan_kelembagaan_input", "kalender_musim", "arah_kebijakan",
+  "rkp_daftar_isi", "rkp_misi_desa", "rkp_profil_desa", "rkp_tim_penyusun", "rkp_musdes",
+  "rkp_rktl", "rkp_pagu_indikatif", "rkp_program_masuk", "rkp_rancangan_kegiatan", "rkp_matrik",
+  "rkp_prioritas", "rkp_pendapatan", "rkp_belanja", "rkp_pembiayaan", "rkp_input_masalah",
+  "rkp_rekomendasi_sdgs", "rkp_evaluasi_sebelumnya", "rkp_dasar_hukum_perdes", "rkp_dasar_hukum_sk",
+  "rkp_ketentuan_umum", "rkp_ba_tim_input",
+  "apb_akun", "apb_bidang", "apb_subbidang", "apb_kegiatan", "apb_paket_kegiatan",
+  "apb_pendapatan", "apb_pendapatan_perubahan", "apb_belanja", "apb_belanja_perubahan",
+  "apb_pembiayaan_1", "apb_pembiayaan_1_perubahan", "apb_pembiayaan_2", "apb_pembiayaan_2_perubahan",
+  "apb_tagging", "apb_satuan", "apb_user",
+]);
+
+function getProfileVillageStepIndex(field) {
+  const stepIndex = profileVillageSteps.findIndex((step) => step.fields.includes(field.label));
+  return stepIndex === -1 ? 0 : stepIndex;
+}
+
+function createMaterialSectionSteps(template) {
+  if (["input_profil_desa", "rkp_profil_desa"].includes(template.key)) return profileVillageSteps;
+
+  const fields = template.fields || [];
+  const stepCount = Math.max(1, Math.min(6, Math.ceil(fields.length / 4)));
+  const fieldsPerStep = Math.max(1, Math.ceil(fields.length / stepCount));
+  const icons = ["list-start", "list-todo", "clipboard-list", "files", "layout-list", "list-checks"];
+  const steps = [];
+
+  for (let index = 0; index < fields.length; index += fieldsPerStep) {
+    const stepFields = fields.slice(index, index + fieldsPerStep);
+    const stepNumber = steps.length + 1;
+    steps.push({
+      title: `Bagian ${stepNumber}`,
+      description: `Lengkapi isian ${index + 1}–${index + stepFields.length} untuk ${template.title}.`,
+      icon: icons[steps.length] || "circle-dot",
+      fields: stepFields.map((field) => field.label),
+    });
   }
 
-  // Render sub-sidebar / wizard horizontal (Gaya Gambar #2)
-  const isProfilForm = profilSubForms.some(sf => sf.key === formKey);
-  let wizardContainer = document.querySelector(".material-wizard");
-  
-  if (isProfilForm) {
-    if (!wizardContainer) {
-      wizardContainer = document.createElement("div");
-      wizardContainer.className = "material-wizard";
-      const header = document.querySelector(".material-form-header");
-      if (header) {
-        header.parentNode.insertBefore(wizardContainer, header.nextSibling);
-      }
-    }
-    
-    wizardContainer.innerHTML = "";
-    profilSubForms.forEach(sf => {
-      const step = document.createElement("a");
-      step.className = `wizard-step ${sf.key === formKey ? "active" : ""}`;
-      step.innerHTML = `
-        <div class="wizard-icon"><i data-lucide="${sf.icon}"></i></div>
-        <div class="wizard-label">${sf.label}</div>
-      `;
-      step.addEventListener("click", (e) => {
-        e.preventDefault();
-        renderMaterialForm(sf.key);
-      });
-      wizardContainer.append(step);
-    });
-  } else {
-    if (wizardContainer) {
-      wizardContainer.remove();
-    }
-  }
-  const statGrid = document.querySelector(".material-stat-grid");
-  const chartGrid = document.querySelector(".material-chart-grid");
-  if (statGrid && chartGrid) {
-    if (formKey === "dashboard") {
-      statGrid.style.setProperty("display", "grid", "important");
-      chartGrid.style.setProperty("display", "grid", "important");
-    } else {
-      statGrid.style.setProperty("display", "none", "important");
-      chartGrid.style.setProperty("display", "none", "important");
-    }
-  }
+  return steps.length ? steps : [{ title: "Bagian 1", description: template.description, icon: "list-start", fields: [] }];
+}
+
+function getMaterialSectionStepIndex(field) {
+  const stepIndex = currentMaterialSectionSteps.findIndex((step) => step.fields.includes(field.label));
+  return stepIndex === -1 ? 0 : stepIndex;
+}
+
+function activateMaterialSectionStep(stepIndex) {
+  if (!materialAutoForm) return;
+  const safeIndex = Math.max(0, Math.min(stepIndex, currentMaterialSectionSteps.length - 1));
+  const step = currentMaterialSectionSteps[safeIndex];
+  if (!step) return;
+
+  materialAutoForm.querySelectorAll("[data-material-step-button]").forEach((button) => {
+    const isActive = Number(button.dataset.materialStepButton) === safeIndex;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-current", isActive ? "step" : "false");
+  });
+
+  materialAutoForm.querySelectorAll("[data-material-step-field]").forEach((field) => {
+    field.hidden = Number(field.dataset.materialStepField) !== safeIndex;
+  });
+
+  const title = materialAutoForm.querySelector("#materialStepTitle");
+  const description = materialAutoForm.querySelector("#materialStepDescription");
+  if (title) title.textContent = step.title;
+  if (description) description.textContent = step.description;
+}
+
+function createMaterialSectionNavigation(template, isProfileVillageForm) {
+  const fragment = document.createDocumentFragment();
+  const overview = document.createElement("section");
+  overview.className = "profile-village-overview span-2";
+  overview.innerHTML = `
+    <div class="profile-village-mark"><i data-lucide="${isProfileVillageForm ? "map-pinned" : template.icon}"></i></div>
+    <div class="profile-village-copy">
+      <span>${isProfileVillageForm ? "PROFIL DESA" : activeMaterialModule.title.toUpperCase()}</span>
+      <h3>${isProfileVillageForm ? "Data Profil dan Wilayah" : template.title}</h3>
+      <p>${isProfileVillageForm ? "Lengkapi informasi desa secara bertahap melalui subbagian di bawah ini." : template.description}</p>
+    </div>
+    <div class="profile-village-status"><i data-lucide="${isProfileVillageForm ? "shield-check" : "list-checks"}"></i> ${isProfileVillageForm ? "RPJMDesa" : "Form Bertahap"}</div>
+  `;
+  fragment.append(overview);
+
+  const stepper = document.createElement("nav");
+  stepper.className = "profile-village-stepper span-2";
+  stepper.style.setProperty("--material-step-count", String(Math.min(currentMaterialSectionSteps.length, 6)));
+  stepper.setAttribute("aria-label", `Subbagian ${template.title}`);
+  currentMaterialSectionSteps.forEach((step, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "profile-step-button";
+    button.dataset.materialStepButton = String(index);
+    button.innerHTML = `
+      <span class="profile-step-circle"><i data-lucide="${step.icon}"></i></span>
+      <strong>${step.title}</strong>
+      <small>${step.fields.length} isian</small>
+    `;
+    button.addEventListener("click", () => activateMaterialSectionStep(index));
+    stepper.append(button);
+  });
+  fragment.append(stepper);
+
+  const caption = document.createElement("div");
+  caption.className = "profile-step-caption span-2";
+  caption.innerHTML = `
+    <div class="profile-step-caption-icon"><i data-lucide="info"></i></div>
+    <div>
+      <strong id="materialStepTitle">${currentMaterialSectionSteps[0].title}</strong>
+      <p id="materialStepDescription">${currentMaterialSectionSteps[0].description}</p>
+    </div>
+  `;
+  fragment.append(caption);
+  return fragment;
+}
+
+function renderMaterialForm(formKey = "dashboard") {
   const template = materialFormTemplates[formKey] || materialFormTemplates.dashboard;
   if (!materialAutoForm || !template) return;
   currentMaterialFormKey = template.key;
+  editingMaterialRowId = null;
 
   const title = `${template.title} ${activeMaterialModule.title}`;
   materialFormKicker && (materialFormKicker.textContent = activeMaterialModule.title);
@@ -1034,53 +946,52 @@ function renderMaterialForm(formKey = "dashboard") {
   }
 
   materialAutoForm.innerHTML = "";
+  const isProfileVillageForm = ["input_profil_desa", "rkp_profil_desa"].includes(template.key);
+  const isSectionedMaterialForm = template.key !== "dashboard";
+  const isAccessDatasheet = accessDatasheetKeys.has(template.key);
+  if (addMaterialTableRowButton) addMaterialTableRowButton.hidden = !isAccessDatasheet;
+  currentMaterialSectionSteps = isSectionedMaterialForm ? createMaterialSectionSteps(template) : [];
+  materialAutoForm.classList.toggle("is-profile-village-form", isProfileVillageForm);
+  materialAutoForm.classList.toggle("is-sectioned-material-form", isSectionedMaterialForm);
+  materialAutoForm.classList.toggle("is-access-datasheet-form", isAccessDatasheet);
+  materialFormPanel?.classList.toggle("is-profile-village-mode", isSectionedMaterialForm);
+  adminView?.classList.toggle("is-profile-village-view", isSectionedMaterialForm);
+
+  if (isSectionedMaterialForm) {
+    materialAutoForm.append(createMaterialSectionNavigation(template, isProfileVillageForm));
+  }
+
+  const fieldsTarget = isAccessDatasheet ? document.createElement("div") : materialAutoForm;
+  if (isAccessDatasheet) {
+    fieldsTarget.className = "access-datasheet-fields span-2";
+    materialAutoForm.append(fieldsTarget);
+  }
+
   template.fields.forEach((field) => {
-    materialAutoForm.append(createMaterialField(field));
+    const fieldControl = createMaterialField(field);
+    if (isSectionedMaterialForm) {
+      fieldControl.classList.add("profile-village-field");
+      fieldControl.dataset.materialStepField = String(getMaterialSectionStepIndex(field));
+    }
+    fieldsTarget.append(fieldControl);
   });
 
   const actions = document.createElement("div");
   actions.className = "material-form-actions span-2";
-  actions.style.cssText = "display: flex; gap: 12px; align-items: center; flex-wrap: wrap;";
   actions.innerHTML = `
-    <button type="submit" id="materialFormSubmitBtn" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 12px 24px; min-height: 48px;"><i data-lucide="save"></i>Simpan Data</button>
-    <button type="button" id="materialFormAddBtn" class="btn btn-success" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 12px 24px; min-height: 48px;"><i data-lucide="plus-circle"></i>Tambah Baru</button>
-    <button type="reset" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 12px 24px; min-height: 48px;"><i data-lucide="rotate-ccw"></i>Reset</button>
+    <button type="submit"><i data-lucide="save"></i>Simpan Data</button>
+    <button type="reset"><i data-lucide="rotate-ccw"></i>Reset</button>
   `;
   materialAutoForm.append(actions);
 
-  // Set listener for Tambah Baru button
-  const formAddBtn = actions.querySelector("#materialFormAddBtn");
-  formAddBtn?.addEventListener("click", () => {
-    materialAutoForm.reset();
-    editingMaterialRowId = null;
-
-    const mContainer = materialAutoForm.querySelector(".mission-list-container");
-    if (mContainer && mContainer.addMissionRow) {
-      const listWrapper = mContainer.querySelector(".mission-list-wrapper");
-      listWrapper.innerHTML = "";
-      mContainer.addMissionRow("1", "");
-    }
-
-    // Reset dynamic paragraph list containers
-    materialAutoForm.querySelectorAll(".paragraph-list-container").forEach(pContainer => {
-      if (pContainer.addParagraphRow) {
-        const listWrapper = pContainer.querySelector(".paragraph-list-wrapper");
-        listWrapper.innerHTML = "";
-        pContainer.addParagraphRow("");
-      }
-    });
-
-    const submitBtn = actions.querySelector("#materialFormSubmitBtn");
-    if (submitBtn) {
-      submitBtn.innerHTML = '<i data-lucide="save"></i>Simpan Data';
-    }
-  });
+  if (isSectionedMaterialForm) {
+    activateMaterialSectionStep(0);
+  }
 
   if (window.lucide) {
     lucide.createIcons();
   }
 
-  // Update the result table headers & rows instantly to match the active form
   renderMaterialResultTable();
 }
 
@@ -1101,12 +1012,146 @@ function getMaterialFormValues() {
   return values;
 }
 
-function summarizeMaterialValues(values) {
-  return values
-    .filter((item) => item.value !== "-")
-    .slice(0, 3)
-    .map((item) => `${item.label}: ${item.value}`)
-    .join(" | ") || "Data tersimpan tanpa ringkasan.";
+function getMaterialVisibleFields(template) {
+  return template.fields || [];
+}
+
+function getMaterialValueMap(row) {
+  if (row.valueMap) return row.valueMap;
+
+  return (row.values || []).reduce((result, item) => {
+    if (item.name) {
+      result[item.name] = item.value;
+    } else if (item.label) {
+      result[item.label] = item.value;
+    }
+    return result;
+  }, {});
+}
+
+function getMaterialRowValue(row, field) {
+  const valueMap = getMaterialValueMap(row);
+  return valueMap[field.name] || valueMap[field.label] || "-";
+}
+
+function isMaterialRowForTemplate(row, template) {
+  return row.formKey ? row.formKey === template.key : row.form === template.title;
+}
+
+function renderMaterialResultHeader(template) {
+  if (!materialResultHead) return;
+  const visibleFields = getMaterialVisibleFields(template);
+  const headerRow = document.createElement("tr");
+  const table = materialResultHead.closest("table");
+
+  let storedWidths = {};
+  try {
+    storedWidths = JSON.parse(localStorage.getItem(`${materialStorageKey}-column-widths-${template.key}`) || "{}");
+  } catch (error) {
+    storedWidths = {};
+  }
+
+  [...visibleFields.map((field) => field.label), "Aksi"].forEach((label, columnIndex) => {
+    const headerCell = document.createElement("th");
+    const columnKey = columnIndex < visibleFields.length ? visibleFields[columnIndex].name : "aksi";
+    const savedWidth = Number(storedWidths[columnKey]) || (columnKey === "aksi" ? 168 : 150);
+    headerCell.dataset.columnKey = columnKey;
+    headerCell.dataset.columnIndex = String(columnIndex);
+    headerCell.style.width = `${savedWidth}px`;
+    headerCell.style.minWidth = `${savedWidth}px`;
+    headerCell.style.maxWidth = `${savedWidth}px`;
+    const labelSpan = document.createElement("span");
+    labelSpan.textContent = label;
+    const resizeHandle = document.createElement("button");
+    resizeHandle.type = "button";
+    resizeHandle.className = "column-resize-handle";
+    resizeHandle.dataset.resizeColumn = columnKey;
+    resizeHandle.setAttribute("aria-label", `Ubah lebar kolom ${label}`);
+    resizeHandle.title = "Tarik untuk mengubah lebar kolom";
+    headerCell.append(labelSpan, resizeHandle);
+    headerRow.append(headerCell);
+  });
+
+  if (table) {
+    table.style.tableLayout = "fixed";
+    const totalWidth = [...visibleFields.map((field) => field.name), "aksi"].reduce((sum, key) => sum + (Number(storedWidths[key]) || (key === "aksi" ? 168 : 150)), 0);
+    table.style.minWidth = `${Math.max(960, totalWidth)}px`;
+  }
+
+  materialResultHead.innerHTML = "";
+  materialResultHead.append(headerRow);
+}
+
+function applyMaterialColumnWidth(table, columnIndex, width) {
+  const safeWidth = Math.max(90, Math.min(600, Math.round(width)));
+  table?.querySelectorAll("tr").forEach((row) => {
+    const cell = row.children[columnIndex];
+    if (!cell) return;
+    cell.style.width = `${safeWidth}px`;
+    cell.style.minWidth = `${safeWidth}px`;
+    cell.style.maxWidth = `${safeWidth}px`;
+  });
+  if (table) {
+    const widths = Array.from(table.querySelectorAll("thead th")).map((cell) => parseFloat(cell.style.width) || 150);
+    table.style.minWidth = `${Math.max(960, widths.reduce((sum, value) => sum + value, 0))}px`;
+  }
+  return safeWidth;
+}
+
+function createMaterialManualControl(field) {
+  const control = document.createElement("div");
+  control.className = "material-sheet-cell";
+  control.contentEditable = "true";
+  control.role = "textbox";
+  control.dataset.manualField = field.name;
+  control.dataset.placeholder = field.placeholder || field.label;
+  control.dataset.fieldType = field.type || "text";
+  control.setAttribute("aria-label", field.label);
+  control.setAttribute("tabindex", "0");
+
+  if (field.type === "select") {
+    control.dataset.options = (field.options || []).join("|");
+  }
+
+  return control;
+}
+
+function renderMaterialManualInputRow(template, visibleFields) {
+  const tableRow = document.createElement("tr");
+  tableRow.className = "material-manual-row";
+  tableRow.dataset.manualKey = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  visibleFields.forEach((field) => {
+    const cell = document.createElement("td");
+    cell.append(createMaterialManualControl(field));
+    tableRow.append(cell);
+  });
+
+  const actionCell = document.createElement("td");
+  actionCell.className = "table-action-buttons";
+  const editButton = document.createElement("button");
+  editButton.className = "material-save-row";
+  editButton.type = "button";
+  editButton.dataset.manualSave = template.key;
+  editButton.setAttribute("aria-label", "Simpan baris baru");
+  editButton.innerHTML = '<i data-lucide="save"></i>Simpan';
+
+  const saveButton = document.createElement("button");
+  saveButton.className = "material-delete-row";
+  saveButton.type = "button";
+  saveButton.dataset.manualClear = template.key;
+  saveButton.innerHTML = '<i data-lucide="trash-2"></i>Hapus';
+  actionCell.append(editButton);
+  actionCell.append(saveButton);
+  tableRow.append(actionCell);
+
+  materialResultRows.append(tableRow);
+
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+
+  return tableRow;
 }
 
 function saveMaterialRows() {
@@ -1126,153 +1171,61 @@ function loadMaterialRows() {
 }
 
 function renderMaterialResultTable() {
-  const tableHeader = document.querySelector(".material-result-table thead");
-  if (!materialResultRows || !tableHeader) return;
-
+  if (!materialResultRows) return;
   const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
-  const filteredRows = materialSavedRows.filter(row => row.formKey === currentMaterialFormKey || row.form === template.title);
+  const visibleFields = getMaterialVisibleFields(template);
+  const filteredRows = materialSavedRows.filter((row) => isMaterialRowForTemplate(row, template));
 
-  tableHeader.innerHTML = "";
-  const headerRow = document.createElement("tr");
-  
-  const headers = [];
-  template.fields.forEach(field => {
-    headers.push(field.label);
-  });
-  headers.push("Aksi");
-
-  headers.forEach(hText => {
-    const th = document.createElement("th");
-    th.textContent = hText;
-    headerRow.append(th);
-  });
-  tableHeader.append(headerRow);
-
+  renderMaterialResultHeader(template);
   materialResultRows.innerHTML = "";
-
-  if (filteredRows.length === 0) {
-    const emptyRow = document.createElement("tr");
-    emptyRow.className = "material-empty-row";
-    emptyRow.innerHTML = `<td colspan="${headers.length}">Belum ada data yang berhasil di input untuk form ini.</td>`;
-    materialResultRows.append(emptyRow);
-    return;
-  }
 
   filteredRows.forEach((row) => {
     const tableRow = document.createElement("tr");
 
-    template.fields.forEach(field => {
+    visibleFields.map((field) => getMaterialRowValue(row, field)).forEach((value) => {
       const cell = document.createElement("td");
-      let val = "-";
-      if (row.values) {
-        const valObj = row.values.find(v => v.name === field.name || v.label === field.label);
-        if (valObj) val = valObj.value;
-      }
-      cell.textContent = val;
+      cell.textContent = value;
       tableRow.append(cell);
     });
 
     const actionCell = document.createElement("td");
-    actionCell.style.cssText = "display: flex; gap: 8px; align-items: center; justify-content: center;";
-
-    // Edit button
+    actionCell.className = "table-action-buttons";
     const editButton = document.createElement("button");
-    editButton.className = "material-edit-row btn btn-sm btn-primary";
+    editButton.className = "material-edit-row";
     editButton.type = "button";
-    editButton.dataset.rowId = row.id;
+    editButton.dataset.editRowId = row.id;
     editButton.setAttribute("aria-label", "Edit baris");
-    editButton.innerHTML = '<i data-lucide="pencil"></i>';
-    editButton.addEventListener("click", () => {
-      editingMaterialRowId = row.id;
-      const submitBtn = materialAutoForm.querySelector('[type="submit"]');
-      if (submitBtn) {
-        submitBtn.innerHTML = '<i data-lucide="check"></i>Ubah Data';
-      }
-      
-      template.fields.forEach(field => {
-        const control = materialAutoForm.elements[field.name];
-        const valObj = row.values ? row.values.find(v => v.name === field.name || v.label === field.label) : null;
-        const val = valObj ? valObj.value : "";
-        if (control) {
-          control.value = val;
-          control.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-        
-        const container = materialAutoForm.querySelector(`[name="${field.name}"]`)?.closest(".paragraph-list-container");
-        if (container && val && val !== "-") {
-          const listWrapper = container.querySelector(".paragraph-list-wrapper");
-          listWrapper.innerHTML = "";
-          const paragraphs = val.split(/\n\n+/);
-          paragraphs.forEach(p => {
-            if (container.addParagraphRow) {
-              container.addParagraphRow(p);
-            }
-          });
-        }
+    editButton.innerHTML = '<i data-lucide="pencil"></i>Edit';
 
-        const mContainer = materialAutoForm.querySelector(`[name="${field.name}"]`)?.closest(".mission-list-container");
-        if (mContainer && val && val !== "-") {
-          const listWrapper = mContainer.querySelector(".mission-list-wrapper");
-          listWrapper.innerHTML = "";
-          const missions = val.split(" | ");
-          missions.forEach(m => {
-            const parts = m.split(". ");
-            const num = parts[0] || "";
-            const text = parts.slice(1).join(". ") || "";
-            if (mContainer.addMissionRow) {
-              mContainer.addMissionRow(num, text);
-            }
-          });
-        }
-      });
-      document.querySelector("#materialAutoForm")?.scrollIntoView({ behavior: "smooth" });
-    });
-
-    // Tambah button
-    const tambahButton = document.createElement("button");
-    tambahButton.className = "material-new-row btn btn-sm btn-success";
-    tambahButton.type = "button";
-    tambahButton.setAttribute("aria-label", "Tambah baru");
-    tambahButton.innerHTML = '<i data-lucide="plus-circle"></i>';
-    tambahButton.addEventListener("click", () => {
-      materialAutoForm.reset();
-      editingMaterialRowId = null;
-      
-      const mContainer = materialAutoForm.querySelector(".mission-list-container");
-      if (mContainer && mContainer.addMissionRow) {
-        const listWrapper = mContainer.querySelector(".mission-list-wrapper");
-        listWrapper.innerHTML = "";
-        mContainer.addMissionRow("1", "");
-      }
-      
-      const submitBtn = materialAutoForm.querySelector('[type="submit"]');
-      if (submitBtn) {
-        submitBtn.innerHTML = '<i data-lucide="save"></i>Simpan Data';
-      }
-    });
-
-    // Hapus button
     const deleteButton = document.createElement("button");
-    deleteButton.className = "material-delete-row btn btn-sm btn-danger";
+    deleteButton.className = "material-delete-row";
     deleteButton.type = "button";
     deleteButton.dataset.rowId = row.id;
     deleteButton.setAttribute("aria-label", "Hapus baris");
-    deleteButton.innerHTML = '<i data-lucide="trash-2"></i>';
-
-    actionCell.append(editButton, tambahButton, deleteButton);
+    deleteButton.innerHTML = '<i data-lucide="trash-2"></i>Hapus';
+    actionCell.append(editButton);
+    actionCell.append(deleteButton);
     tableRow.append(actionCell);
-
     materialResultRows.append(tableRow);
   });
+
+  renderMaterialManualInputRow(template, visibleFields);
 
   if (window.lucide) {
     lucide.createIcons();
   }
 }
 
-function addMaterialResultRow() {
-  const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
-  const values = getMaterialFormValues();
+function createMaterialSavedRow(template, values) {
+  const normalizedValues = values.map((item) => ({
+    label: item.label,
+    name: item.name,
+    value: String(item.value || "").trim() || "-",
+  }));
+  const valueMap = normalizedValues.reduce((result, item) => {
+    result[item.name] = item.value;
+    return result;
+  }, {});
   const createdAt = new Intl.DateTimeFormat("id-ID", {
     day: "2-digit",
     month: "short",
@@ -1281,37 +1234,95 @@ function addMaterialResultRow() {
     minute: "2-digit",
   }).format(new Date());
 
+  return {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    module: activeMaterialModule.title,
+    formKey: template.key,
+    form: template.title,
+    status: "Berhasil di input",
+    createdAt,
+    valueMap,
+    values: normalizedValues,
+  };
+}
+
+function addMaterialSavedRow(template, values) {
+  const savedRow = createMaterialSavedRow(template, values);
+
   if (editingMaterialRowId) {
-    materialSavedRows = materialSavedRows.map(row => {
-      if (row.id === editingMaterialRowId) {
-        return Object.assign({}, row, {
-          values: values,
-          summary: summarizeMaterialValues(values),
-          createdAt: createdAt
-        });
-      }
-      return row;
+    materialSavedRows = materialSavedRows.map((row) => {
+      if (row.id !== editingMaterialRowId) return row;
+      return {
+        ...savedRow,
+        id: editingMaterialRowId,
+        createdAt: row.createdAt,
+        updatedAt: savedRow.createdAt,
+      };
     });
     editingMaterialRowId = null;
-    const submitBtn = materialAutoForm.querySelector('[type="submit"]');
-    if (submitBtn) {
-      submitBtn.innerHTML = '<i data-lucide="save"></i>Simpan Data';
-    }
   } else {
-    materialSavedRows.unshift({
-      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      module: activeMaterialModule.title,
-      form: template.title,
-      formKey: currentMaterialFormKey,
-      summary: summarizeMaterialValues(values),
-      status: "Berhasil di input",
-      createdAt,
-      values,
-    });
+    materialSavedRows.unshift(savedRow);
   }
 
   saveMaterialRows();
   renderMaterialResultTable();
+}
+
+function addMaterialResultRow() {
+  const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
+  const values = getMaterialFormValues();
+  addMaterialSavedRow(template, values);
+}
+
+function getMaterialManualCellValue(control) {
+  return String(control?.textContent || "").replace(/\s+/g, " ").trim();
+}
+
+function isMaterialManualRowFilled(row) {
+  return Array.from(row?.querySelectorAll(".material-sheet-cell") || []).some((cell) => getMaterialManualCellValue(cell) !== "");
+}
+
+function ensureTrailingBlankMaterialRow() {
+  if (!materialResultRows) return;
+  const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
+  const visibleFields = getMaterialVisibleFields(template);
+  const manualRows = Array.from(materialResultRows.querySelectorAll(".material-manual-row"));
+  const lastManualRow = manualRows[manualRows.length - 1];
+
+  if (!lastManualRow || isMaterialManualRowFilled(lastManualRow)) {
+    renderMaterialManualInputRow(template, visibleFields);
+  }
+}
+
+function focusSiblingMaterialCell(control, direction) {
+  const cells = Array.from(materialResultRows?.querySelectorAll(".material-sheet-cell") || []);
+  const index = cells.indexOf(control);
+  if (index === -1) return;
+
+  const nextCell = cells[index + direction];
+  if (nextCell) {
+    nextCell.focus();
+  } else if (direction > 0) {
+    materialResultRows?.querySelector("[data-manual-save]")?.focus();
+  }
+}
+
+function clearMaterialManualCells() {
+  materialResultRows?.querySelectorAll(".material-manual-row:last-child .material-sheet-cell").forEach((cell) => {
+    cell.textContent = "";
+  });
+  editingMaterialRowId = null;
+}
+
+function fillMaterialManualCells(row, template) {
+  if (!row) return;
+  editingMaterialRowId = row.id;
+  const targetRow = materialResultRows?.querySelector(".material-manual-row") || renderMaterialManualInputRow(template, getMaterialVisibleFields(template));
+  getMaterialVisibleFields(template).forEach((field) => {
+    const cell = targetRow?.querySelector(`[data-manual-field="${field.name}"]`);
+    if (cell) cell.textContent = getMaterialRowValue(row, field) === "-" ? "" : getMaterialRowValue(row, field);
+  });
+  ensureTrailingBlankMaterialRow();
 }
 
 function getFormValue(form, name) {
@@ -1561,38 +1572,141 @@ materialAutoForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const submitButton = materialAutoForm.querySelector('[type="submit"]');
   if (!submitButton) return;
-  const wasEditing = Boolean(editingMaterialRowId);
   addMaterialResultRow();
+  const originalText = submitButton.innerHTML;
   submitButton.innerHTML = '<i data-lucide="check"></i>Tersimpan';
   submitButton.classList.add("is-saved");
   if (window.lucide) lucide.createIcons();
   window.setTimeout(() => {
-    submitButton.innerHTML = '<i data-lucide="save"></i>Simpan Data';
+    submitButton.innerHTML = originalText;
     submitButton.classList.remove("is-saved");
     if (window.lucide) lucide.createIcons();
   }, 1400);
 });
 
-materialAutoForm?.addEventListener("reset", () => {
-  editingMaterialRowId = null;
-  const submitBtn = materialAutoForm.querySelector('[type="submit"]');
-  if (submitBtn) {
-    submitBtn.innerHTML = '<i data-lucide="save"></i>Simpan Data';
-  }
-});
-
 materialResultRows?.addEventListener("click", (event) => {
-  const deleteButton = event.target.closest(".material-delete-row");
+  const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
+
+  const manualSaveButton = event.target.closest("[data-manual-save]");
+  if (manualSaveButton) {
+    const manualRow = manualSaveButton.closest(".material-manual-row");
+    const values = getMaterialVisibleFields(template).map((field) => {
+      const control = manualRow?.querySelector(`[data-manual-field="${field.name}"]`);
+      return {
+        label: field.label,
+        name: field.name,
+        value: getMaterialManualCellValue(control) || "-",
+      };
+    });
+
+    addMaterialSavedRow(template, values);
+    return;
+  }
+
+  const manualClearButton = event.target.closest("[data-manual-clear]");
+  if (manualClearButton) {
+    const manualRow = manualClearButton.closest(".material-manual-row");
+    const manualRows = Array.from(materialResultRows.querySelectorAll(".material-manual-row"));
+    if (manualRows.length > 1 && manualRow && !manualRow.isSameNode(manualRows[manualRows.length - 1])) {
+      manualRow.remove();
+    } else {
+      clearMaterialManualCells();
+    }
+    ensureTrailingBlankMaterialRow();
+    return;
+  }
+
+  const editButton = event.target.closest("[data-edit-row-id]");
+  if (editButton) {
+    const row = materialSavedRows.find((item) => item.id === editButton.dataset.editRowId);
+    fillMaterialManualCells(row, template);
+    materialResultRows.querySelector(".material-sheet-cell")?.focus();
+    return;
+  }
+
+  const deleteButton = event.target.closest("[data-row-id]");
   if (!deleteButton) return;
+  if (editingMaterialRowId === deleteButton.dataset.rowId) {
+    editingMaterialRowId = null;
+  }
   materialSavedRows = materialSavedRows.filter((row) => row.id !== deleteButton.dataset.rowId);
   saveMaterialRows();
   renderMaterialResultTable();
 });
 
+materialResultRows?.addEventListener("keydown", (event) => {
+  const cell = event.target.closest(".material-sheet-cell");
+  if (!cell) return;
+
+  if (event.key === "Enter" && event.ctrlKey) {
+    event.preventDefault();
+    cell.closest(".material-manual-row")?.querySelector("[data-manual-save]")?.click();
+    return;
+  }
+
+  if (event.key === "Enter") {
+    event.preventDefault();
+    focusSiblingMaterialCell(cell, event.shiftKey ? -1 : 1);
+    return;
+  }
+
+  if (event.key === "Tab") {
+    event.preventDefault();
+    focusSiblingMaterialCell(cell, event.shiftKey ? -1 : 1);
+  }
+});
+
+materialResultRows?.addEventListener("input", (event) => {
+  const cell = event.target.closest(".material-sheet-cell");
+  if (!cell) return;
+  ensureTrailingBlankMaterialRow();
+});
+
+document.addEventListener("pointerdown", (event) => {
+  const handle = event.target.closest(".column-resize-handle");
+  if (!handle) return;
+  event.preventDefault();
+  const header = handle.closest("th");
+  const table = header?.closest("table");
+  if (!header || !table) return;
+
+  const startX = event.clientX;
+  const startWidth = header.getBoundingClientRect().width;
+  const columnIndex = Number(header.dataset.columnIndex);
+  const columnKey = header.dataset.columnKey;
+  handle.classList.add("is-resizing");
+  document.body.classList.add("is-resizing-column");
+
+  const onMove = (moveEvent) => {
+    applyMaterialColumnWidth(table, columnIndex, startWidth + moveEvent.clientX - startX);
+  };
+  const onEnd = () => {
+    document.removeEventListener("pointermove", onMove);
+    document.removeEventListener("pointerup", onEnd);
+    handle.classList.remove("is-resizing");
+    document.body.classList.remove("is-resizing-column");
+    const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
+    let widths = {};
+    try { widths = JSON.parse(localStorage.getItem(`${materialStorageKey}-column-widths-${template.key}`) || "{}"); } catch (error) { widths = {}; }
+    widths[columnKey] = Math.round(header.getBoundingClientRect().width);
+    try { localStorage.setItem(`${materialStorageKey}-column-widths-${template.key}`, JSON.stringify(widths)); } catch (error) {}
+  };
+  document.addEventListener("pointermove", onMove);
+  document.addEventListener("pointerup", onEnd, {once:true});
+});
+
 clearMaterialTableButton?.addEventListener("click", () => {
-  materialSavedRows = [];
+  const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
+  materialSavedRows = materialSavedRows.filter((row) => !isMaterialRowForTemplate(row, template));
   saveMaterialRows();
   renderMaterialResultTable();
+});
+
+addMaterialTableRowButton?.addEventListener("click", () => {
+  const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
+  const row = renderMaterialManualInputRow(template, getMaterialVisibleFields(template));
+  row?.querySelector(".material-sheet-cell")?.focus();
+  row?.scrollIntoView({behavior:"smooth",block:"nearest",inline:"start"});
 });
 
 desaDataForm?.addEventListener("submit", async (event) => {
@@ -1788,91 +1902,3 @@ if (window.bootstrap) {
 if (window.lucide) {
   lucide.createIcons();
 }
-
-// --- EXCEL IMPORT / EXPORT LOGIC ---
-const exportExcelBtn = document.querySelector("#exportExcelBtn");
-const importExcelBtn = document.querySelector("#importExcelBtn");
-const importExcelFile = document.querySelector("#importExcelFile");
-
-exportExcelBtn?.addEventListener("click", () => {
-  const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
-  const filteredRows = materialSavedRows.filter(row => row.formKey === currentMaterialFormKey || row.form === template.title);
-  if (filteredRows.length === 0) {
-    alert("Tidak ada data untuk diexport!");
-    return;
-  }
-
-  const data = filteredRows.map((row, index) => {
-    const item = { "No": index + 1 };
-    template.fields.forEach(field => {
-      const valObj = row.values ? row.values.find(v => v.name === field.name || v.label === field.label) : null;
-      item[field.label] = valObj ? valObj.value : "-";
-    });
-    return item;
-  });
-
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Data Tersimpan");
-  XLSX.writeFile(workbook, `data_${currentMaterialFormKey}.xlsx`);
-});
-
-importExcelBtn?.addEventListener("click", () => {
-  importExcelFile?.click();
-});
-
-importExcelFile?.addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (evt) => {
-    try {
-      const data = new Uint8Array(evt.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const json = XLSX.utils.sheet_to_json(worksheet);
-
-      const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
-      const createdAt = new Intl.DateTimeFormat("id-ID", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(new Date());
-
-      json.forEach((item) => {
-        const values = [];
-        template.fields.forEach(field => {
-          const val = item[field.label] !== undefined ? String(item[field.label]) : "-";
-          values.push({
-            label: field.label,
-            name: field.name,
-            value: val
-          });
-        });
-
-        materialSavedRows.unshift({
-          id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-          module: activeMaterialModule.title,
-          form: template.title,
-          formKey: currentMaterialFormKey,
-          summary: summarizeMaterialValues(values),
-          status: "Berhasil di input",
-          createdAt,
-          values
-        });
-      });
-
-      saveMaterialRows();
-      renderMaterialResultTable();
-      importExcelFile.value = "";
-      alert(`Berhasil mengimport ${json.length} baris data!`);
-    } catch(err) {
-      alert("Format berkas Excel tidak sesuai / gagal di-import!");
-    }
-  };
-  reader.readAsArrayBuffer(file);
-});
