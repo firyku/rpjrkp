@@ -6,6 +6,7 @@ const sideNavLinks = Array.from(document.querySelectorAll(".side-nav a"));
 const viewLinks = Array.from(document.querySelectorAll("[data-view]"));
 const materialMenuLinks = Array.from(document.querySelectorAll("[data-material-form]"));
 const materialAutoForm = document.querySelector("#materialAutoFormFields");
+const materialFormPanel = document.querySelector("#materialAutoForm");
 const materialFormKicker = document.querySelector("#materialFormKicker");
 const materialFormHeading = document.querySelector("#materialFormHeading");
 const materialFormDescription = document.querySelector("#materialFormDescription");
@@ -13,6 +14,7 @@ const materialFormIcon = document.querySelector(".material-form-icon");
 const materialResultHead = document.querySelector("#materialResultHead");
 const materialResultRows = document.querySelector("#materialResultRows");
 const clearMaterialTableButton = document.querySelector("#clearMaterialTable");
+const addMaterialTableRowButton = document.querySelector("#addMaterialTableRow");
 const desaDataForm = document.querySelector("#desaDataForm");
 const desaDataRows = document.querySelector("#desaDataRows");
 const clearDesaDataTableButton = document.querySelector("#clearDesaDataTable");
@@ -20,6 +22,8 @@ const visiDesaList = document.querySelector("#visiDesaList");
 const addVisiDesaItemButton = document.querySelector("#addVisiDesaItem");
 const dashboardView = document.querySelector("#dashboardView");
 const adminView = document.querySelector("#adminView");
+const heroDreaminaVideo = document.querySelector("#heroDreaminaVideo");
+const heroSoundToggle = document.querySelector("#heroSoundToggle");
 
 const adminConfig = {
   rpjmdesa: {
@@ -66,6 +70,70 @@ let materialSavedRows = [];
 let desaSavedRows = [];
 let editingDesaRowId = null;
 let editingMaterialRowId = null;
+let currentMaterialSectionSteps = [];
+
+if (heroDreaminaVideo) {
+  let heroSoundEnabled = false;
+
+  const syncHeroSoundButton = () => {
+    if (!heroSoundToggle) {
+      return;
+    }
+
+    const icon = heroSoundToggle.querySelector("i");
+    const label = heroSoundToggle.querySelector("span");
+    heroSoundToggle.setAttribute("aria-pressed", String(heroSoundEnabled));
+    heroSoundToggle.setAttribute("aria-label", heroSoundEnabled ? "Matikan suara video" : "Nyalakan suara video");
+
+    if (icon) {
+      icon.setAttribute("data-lucide", heroSoundEnabled ? "volume-2" : "volume-x");
+    }
+    if (label) {
+      label.textContent = heroSoundEnabled ? "Suara aktif" : "Suara mati";
+    }
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  };
+
+  const playHeroVideo = () => {
+    heroDreaminaVideo.muted = !heroSoundEnabled;
+    heroDreaminaVideo.volume = heroSoundEnabled ? 1 : 0;
+    heroDreaminaVideo.loop = true;
+    heroDreaminaVideo.playsInline = true;
+    const playPromise = heroDreaminaVideo.play();
+    if (playPromise?.catch) {
+      playPromise.catch(() => {});
+    }
+  };
+
+  heroSoundToggle?.addEventListener("click", () => {
+    heroSoundEnabled = !heroSoundEnabled;
+    syncHeroSoundButton();
+    playHeroVideo();
+  });
+
+  heroDreaminaVideo.addEventListener("volumechange", () => {
+    const isSoundEnabled = !heroDreaminaVideo.muted && heroDreaminaVideo.volume > 0;
+    if (isSoundEnabled !== heroSoundEnabled) {
+      heroSoundEnabled = isSoundEnabled;
+      syncHeroSoundButton();
+    }
+  });
+
+  if (heroDreaminaVideo.readyState >= 2) {
+    playHeroVideo();
+  } else {
+    heroDreaminaVideo.addEventListener("canplay", playHeroVideo, { once: true });
+  }
+
+  window.addEventListener("load", playHeroVideo);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      playHeroVideo();
+    }
+  });
+}
 
 function createReportTemplate(key, title) {
   return {
@@ -92,6 +160,27 @@ function normalizeAccessName(label) {
 }
 
 function accessField(label, type = "text") {
+  const selectOptions = {
+    "Jenis_RPJMdes": ["Penyusunan", "Perubahan"],
+    "STATUS PERDES_RPJMDes": ["Berlaku", "Perubahan", "Dicabut"],
+    "STATUS PERDES_RKPDes": ["Berlaku", "Perubahan", "Dicabut"],
+    "Jenis Musdes": ["Musdes Perencanaan", "Musdes Penyusunan", "Musrenbang Desa", "Musdes Penetapan"],
+    "Bidang": ["Penyelenggaraan Pemerintahan Desa", "Pelaksanaan Pembangunan Desa", "Pembinaan Kemasyarakatan", "Pemberdayaan Masyarakat", "Penanggulangan Bencana, Keadaan Darurat dan Mendesak"],
+    "BIDANG": ["Penyelenggaraan Pemerintahan Desa", "Pelaksanaan Pembangunan Desa", "Pembinaan Kemasyarakatan", "Pemberdayaan Masyarakat", "Penanggulangan Bencana, Keadaan Darurat dan Mendesak"],
+    "Sumber Dana": ["PAD", "Dana Desa", "ADD", "PBH", "Bantuan Provinsi", "Bantuan Kabupaten", "Lain-lain"],
+    "sumber dana": ["PAD", "Dana Desa", "ADD", "PBH", "Bantuan Provinsi", "Bantuan Kabupaten", "Lain-lain"],
+    "Pola Pelaksanaan": ["Swakelola", "Kerja Sama Antar Desa", "Kerja Sama Pihak Ketiga"],
+    "pola": ["Swakelola", "Kerja Sama Antar Desa", "Kerja Sama Pihak Ketiga"],
+    "Jenis": ["Tanaman Pangan", "Perkebunan", "Buah-buahan"],
+    "Jenis Ternak/Perikanan": ["Peternakan", "Perikanan Tangkap", "Perikanan Budidaya"],
+    "Kondisi": ["Baik", "Rusak Ringan", "Rusak Sedang", "Rusak Berat"],
+    "Kondisi Irigasi": ["Baik", "Rusak Ringan", "Rusak Sedang", "Rusak Berat"],
+    "Jenis Permukiman": ["Perdesaan", "Perkotaan", "Pesisir", "Pegunungan", "Bantaran Sungai"],
+    "Jenis Pembiayaan": ["Penerimaan Pembiayaan", "Pengeluaran Pembiayaan"],
+  };
+  if (selectOptions[label]) {
+    return {label,name:normalizeAccessName(label),type:"select",options:selectOptions[label],value:selectOptions[label][0]};
+  }
   return {
     label,
     name: normalizeAccessName(label),
@@ -105,6 +194,20 @@ function accessFields(columns, textareaColumns = []) {
   const textareaSet = new Set(textareaColumns);
   return columns.map((label) => accessField(label, textareaSet.has(label) ? "textarea" : "text"));
 }
+
+const detailedProfileFields = accessFields([
+  "Tahun Data", "Jumlah Penduduk Tahun Ini", "Jumlah Penduduk Tahun Sebelumnya", "Pertumbuhan Penduduk (%)", "Jumlah Laki-laki", "Jumlah Perempuan", "Jumlah Kepala Keluarga",
+  "Penduduk Usia Kerja", "Angkatan Kerja", "Bekerja", "Pengangguran", "Bukan Angkatan Kerja", "Tingkat Partisipasi Angkatan Kerja (%)",
+  "Tidak/Belum Sekolah", "Belum Tamat SD", "Tamat SD/Sederajat", "Tamat SMP/Sederajat", "Tamat SMA/Sederajat", "Diploma", "Sarjana", "Pascasarjana",
+  "Jumlah Kelahiran", "Jumlah Kematian", "Kematian Bayi", "Ibu Hamil", "Balita", "Balita Gizi Buruk", "Penyandang Disabilitas", "Sarana Kesehatan", "Tenaga Kesehatan",
+  "Jumlah Keluarga", "Keluarga Pra Sejahtera", "Keluarga Sejahtera I", "Penduduk Miskin", "Penerima Bantuan Sosial",
+  "Jumlah UMKM", "Jumlah BUM Desa", "Pasar Desa", "Koperasi", "Usaha Perdagangan", "Usaha Jasa", "Pendapatan Rata-rata Penduduk",
+  "Jenis", "Komoditi", "Produksi 3 Tahun Sebelumnya", "Satuan 3 Tahun Sebelumnya", "Produksi 2 Tahun Sebelumnya", "Satuan 2 Tahun Sebelumnya", "Produksi 1 Tahun Sebelumnya", "Satuan 1 Tahun Sebelumnya",
+  "Jenis Ternak/Perikanan", "Komoditas Ternak/Perikanan", "Jumlah Populasi", "Produksi per Tahun", "Satuan Produksi",
+  "Jenis Infrastruktur", "Lokasi Infrastruktur", "Volume", "Satuan", "Kondisi", "Tahun Pembangunan", "Keterangan Infrastruktur",
+  "Nama/Jenis Irigasi", "Lokasi Irigasi", "Panjang (Meter)", "Luas Layanan (Ha)", "Kondisi Irigasi", "Jumlah Penerima Manfaat",
+  "Jumlah Rumah", "Rumah Layak Huni", "Rumah Tidak Layak Huni", "Akses Air Bersih", "Akses Sanitasi", "Akses Listrik", "Jenis Permukiman", "Keterangan Pemukiman",
+], ["Keterangan Infrastruktur", "Keterangan Pemukiman"]);
 
 const materialFormTemplates = {
   dashboard: {
@@ -240,13 +343,7 @@ const materialFormTemplates = {
     icon: "map-pinned",
     title: "Input Profil Desa",
     description: "Form mengikuti kolom tabel PROFIL pada Access.",
-    fields: accessFields([
-      "Agama Mayoritas", "angka rata - rata curah hujan per tahunn", "Jarak Ke-Kabupaten",
-      "Jumlah Kematian Bayi tiga Tahun Terakhir", "Jumlah RT", "Komoditas Utama (bila lebih satu (,))",
-      "Luas Wilayah (Ha)", "Mata Pencarian Terbanyak", "Profil Pada Semester", "Profil Tahun",
-      "Sebagian Besar Lahan", "SEbelah barat", "SEbelah selatan", "SEbelah timur", "SEbelah Utara",
-      "Suhu Rata-Rata 0C maksimum", "Suhu Rata-Rata 0C minimum",
-    ]),
+    fields: detailedProfileFields,
   },
   input_rktl: {
     key: "input_rktl",
@@ -268,19 +365,12 @@ const materialFormTemplates = {
       "Pemimpin Dari Unsur", "Wakil Masyarakat",
     ]),
   },
-  input_data_penting: {
-    key: "input_data_penting",
-    icon: "badge-info",
-    title: "Input Data Penting",
-    description: "Data kunci dari tabel Data Umum untuk kebutuhan dokumen RPJMDesa.",
-    fields: accessFields([
-      "Jenis_RPJMdes", "Jumlah Dusun (angka)", "Jumlah Dusun (huruf)", "Jumlah Kepala Keluarga (KK)",
-      "No Perdes RPJMDEs yg di cabut", "No sk tim penyusun RPJMDes",
-      "Peiode RPJMDes Lama yang di cabut (mulai - akhir)", "Perdes RPJMdesa", "Periode RPJMDesa Ke",
-      "STATUS PERDES_RPJMDes", "Tahun akhir Periode RPJMdesa", "Tahun Awal Periode RPJMdesa",
-      "Tanggal Pengundangan perdes RPJMDes", "Tanggal_Penyusunan_RPJMDes", "Tentang_Perdes_RPJMDes",
-      "Tgl Penetapan Perdes RPJMDesa", "Visi Desa",
-    ], ["Tentang_Perdes_RPJMDes"]),
+  input_sejarah_desa: {
+    key: "input_sejarah_desa",
+    icon: "landmark",
+    title: "Input Sejarah Desa",
+    description: "Mencatat urutan tahun, peristiwa, dan keterangan sejarah desa.",
+    fields: accessFields(["No", "Tahun", "Peristiwa", "Keterangan"], ["Peristiwa", "Keterangan"]),
   },
   input_renc_pendapatan: {
     key: "input_renc_pendapatan",
@@ -314,6 +404,26 @@ const materialFormTemplates = {
       "narsum 4 Dari Unsur", "Narsum 5", "narsum 5 Dari Unsur", "nomor", "Notulen",
       "Notulen Dari Unsur", "Pemimpin", "Pemimpin Dari Unsur", "Tempat (musdus/kelompok)", "Wakil Masyarakat",
     ]),
+  },
+  sketsa_desa: {
+    key: "sketsa_desa", icon: "map", title: "Sketsa Desa",
+    description: "Input unsur, kondisi, masalah, dan potensi pada sketsa desa.",
+    fields: accessFields(["No", "Unsur Sketsa Desa", "Kondisi", "Masalah", "Potensi", "Keterangan"], ["Kondisi", "Masalah", "Potensi", "Keterangan"]),
+  },
+  bagan_kelembagaan_input: {
+    key: "bagan_kelembagaan_input", icon: "network", title: "Bagan Kelembagaan",
+    description: "Input data kelembagaan desa dan hubungan antar-lembaga.",
+    fields: accessFields(["No", "Nama Lembaga", "Dasar Hukum", "Jumlah Pengurus", "Ruang Lingkup Kegiatan", "Keterangan"]),
+  },
+  kalender_musim: {
+    key: "kalender_musim", icon: "calendar-days", title: "Kalender Musim",
+    description: "Input kejadian, kegiatan, dan kondisi desa menurut bulan.",
+    fields: accessFields(["No", "Masalah/Kegiatan", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember", "Keterangan"]),
+  },
+  arah_kebijakan: {
+    key: "arah_kebijakan", icon: "route", title: "Arah Kebijakan",
+    description: "Input arah kebijakan pembangunan desa selama periode RPJMDesa.",
+    fields: accessFields(["No", "Bidang", "Arah Kebijakan", "Strategi", "Sasaran", "Indikator"], ["Arah Kebijakan", "Strategi"]),
   },
   program_masuk_desa: {
     key: "program_masuk_desa",
@@ -428,6 +538,136 @@ const materialFormTemplates = {
   rancangan_rpjmdesa: createReportTemplate("rancangan_rpjmdesa", "Rancangan RPJMDesa"),
   dok_visi_misi_kades: createReportTemplate("dok_visi_misi_kades", "Dok. Visi Misi Kades"),
   dok_pokok_pikiran_bpd: createReportTemplate("dok_pokok_pikiran_bpd", "Dok. Pokok Pikiran BPD"),
+  pengkajian_tindakan: createReportTemplate("pengkajian_tindakan", "Pengkajian Tindakan Pemecahan Masalah"),
+  penentuan_tindakan: createReportTemplate("penentuan_tindakan", "Penentuan Tindakan Masalah"),
+  rekap_gagasan_dusun: createReportTemplate("rekap_gagasan_dusun", "Rekapitulasi Gagasan Dusun/Kelompok"),
+  sketsa_desa_laporan: createReportTemplate("sketsa_desa_laporan", "Sketsa Desa"),
+  kalender_musim_laporan: createReportTemplate("kalender_musim_laporan", "Kalender Musim"),
+  ba_musrenbangdes: createReportTemplate("ba_musrenbangdes", "BA Musrenbangdes"),
+  ba_penetapan: createReportTemplate("ba_penetapan", "BA Pembahasan/Penetapan"),
+  rkp_data_umum: {
+    key: "rkp_data_umum", icon: "database", title: "Input Data Umum RKPDesa",
+    description: "Identitas desa dan data pokok dokumen RKPDesa.",
+    fields: accessFields(["Desa", "Kecamatan", "Kabupaten", "Provinsi", "Alamat Desa", "Nama Kepala Desa", "Nama Sekretaris Desa", "Nama Ketua BPD", "Nama Ketua Tim Penyusun", "Tahun Anggaran", "Nama RKPDesa", "No Perdes RKPDesa", "Status Perdes RKPDesa", "Tanggal Penyusunan", "Tanggal Penetapan Perdes", "Tanggal Pengundangan Perdes", "No SK Tim Penyusun", "Logo Kabupaten", "Foto Kepala Desa", "Gambar Cover RKPDesa"], ["Alamat Desa", "Logo Kabupaten", "Foto Kepala Desa", "Gambar Cover RKPDesa"]),
+  },
+  rkp_daftar_isi: {key:"rkp_daftar_isi",icon:"list-tree",title:"Input Daftar Isi RKPDesa",description:"Input susunan daftar isi dokumen RKPDesa.",fields:accessFields(["Kode","Kode Uraian","Uraian","Isi","Halaman"],["Uraian","Isi"])},
+  rkp_misi_desa: {key:"rkp_misi_desa",icon:"target",title:"Input Misi Desa",description:"Input misi desa sebagai acuan RKPDesa.",fields:accessFields(["No Urut","Misi Desa"],["Misi Desa"])},
+  rkp_profil_desa: {key:"rkp_profil_desa",icon:"map-pinned",title:"Input Profil Desa",description:"Profil desa dalam subbagian yang sama dengan aplikasi Access.",fields:detailedProfileFields},
+  rkp_ba_tim_input: {key:"rkp_ba_tim_input",icon:"file-signature",title:"Input BA Tim",description:"Data berita acara pembentukan tim penyusun RKPDesa.",fields:accessFields(["Nomor Berita Acara","Hari","Tanggal","Bulan","Tahun","Pukul","Tempat","Pimpinan Rapat","Notulen","Agenda","Hasil Kesepakatan","Keterangan"],["Agenda","Hasil Kesepakatan","Keterangan"])},
+  rkp_tim_penyusun: {
+    key: "rkp_tim_penyusun", icon: "users-round", title: "Susunan Tim Penyusun RKPDesa",
+    description: "Daftar tim penyusun beserta kedudukan dan jabatannya.",
+    fields: accessFields(["No", "Nama", "Jabatan", "Kedudukan dalam Tim", "Unsur", "Keterangan"]),
+  },
+  rkp_musdes: {
+    key: "rkp_musdes", icon: "messages-square", title: "Input Musdes RKPDesa",
+    description: "Data pelaksanaan musyawarah desa penyusunan RKPDesa.",
+    fields: accessFields(["Nomor", "Jenis Musdes", "Hari", "Tanggal", "Pukul", "Tempat", "Pemimpin", "Pemimpin dari Unsur", "Notulen", "Notulen dari Unsur", "Narasumber 1", "Narasumber 1 dari Unsur", "Narasumber 2", "Narasumber 2 dari Unsur", "Wakil Masyarakat", "Pokok Pembahasan", "Hasil Musyawarah"], ["Pokok Pembahasan", "Hasil Musyawarah"]),
+  },
+  rkp_rktl: {
+    key: "rkp_rktl", icon: "calendar-clock", title: "Input RKTL RKPDesa",
+    description: "Rencana kerja tindak lanjut penyusunan RKPDesa.",
+    fields: accessFields(["No", "Uraian Kegiatan", "Jenis", "Hari", "Tanggal", "Bulan", "Tahun", "Pukul", "Tempat", "Penanggung Jawab", "Keterangan"], ["Uraian Kegiatan", "Keterangan"]),
+  },
+  rkp_pagu_indikatif: {
+    key: "rkp_pagu_indikatif", icon: "badge-dollar-sign", title: "Pagu Indikatif Desa",
+    description: "Sumber dan besaran pagu indikatif untuk penyusunan RKPDesa.",
+    fields: accessFields(["No", "Sumber Dana", "Uraian", "Tahun Anggaran", "Jumlah (Rp)", "Keterangan"], ["Uraian", "Keterangan"]),
+  },
+  rkp_input_masalah: {key:"rkp_input_masalah",icon:"circle-alert",title:"Input Masalah",description:"Pencermatan masalah dari dokumen RPJMDesa untuk tahun RKPDesa.",fields:accessFields(["No","Bidang","Sub Bidang","Kegiatan RPJMDesa","Lokasi","Masalah","Penyebab","Potensi","Alternatif Tindakan","Keterangan"],["Masalah","Penyebab","Potensi","Alternatif Tindakan","Keterangan"])},
+  rkp_rekomendasi_sdgs: {key:"rkp_rekomendasi_sdgs",icon:"sparkles",title:"Input Rekomendasi SDGs",description:"Rekomendasi program dan kegiatan berdasarkan SDGs Desa.",fields:accessFields(["No","Indikator","Data Eksisting","Nama Program","Volume","Satuan","Jumlah (Rp)","Sumber Dana","Mendukung SDGs Desa Ke-","Pola Pelaksanaan","Tahun Pelaksanaan"],["Data Eksisting","Nama Program"])},
+  rkp_evaluasi_sebelumnya: {key:"rkp_evaluasi_sebelumnya",icon:"history",title:"Evaluasi RKPDesa Sebelumnya",description:"Evaluasi pelaksanaan program dan kegiatan RKPDesa tahun sebelumnya.",fields:accessFields(["No","Bidang","Sub Bidang","Kegiatan","Lokasi","Target Volume","Realisasi Volume","Target Anggaran","Realisasi Anggaran","Capaian (%)","Kendala","Tindak Lanjut","Keterangan"],["Kendala","Tindak Lanjut","Keterangan"])},
+  rkp_program_masuk: {
+    key: "rkp_program_masuk", icon: "building-2", title: "Program Masuk Desa",
+    description: "Program pemerintah dan pihak lain yang masuk ke desa.",
+    fields: accessFields(["No", "Bidang", "Sub Bidang", "Nama Program/Kegiatan", "Lokasi Kegiatan (Dusun/RT/RW)", "Volume", "Satuan", "Total Pagu", "Sumber Dana", "Pemerintah/Pemerintah Provinsi/Pemerintah Pusat", "Tahun Pelaksanaan", "SDGs Desa", "Keterangan"]),
+  },
+  rkp_rancangan_kegiatan: {
+    key: "rkp_rancangan_kegiatan", icon: "notebook-tabs", title: "Rancangan Kegiatan RKPDesa",
+    description: "Rancangan kegiatan berdasarkan hasil pencermatan dan musyawarah desa.",
+    fields: accessFields(["No", "Bidang", "Sub Bidang", "Jenis Kegiatan", "Lokasi", "Volume", "Satuan", "Sasaran/Manfaat", "Waktu Pelaksanaan", "Pola Pelaksanaan", "Pelaksana Kegiatan", "Sumber Dana", "Prakiraan Biaya (Rp)", "SDGs Desa", "Keterangan"], ["Sasaran/Manfaat", "Keterangan"]),
+  },
+  rkp_matrik: {
+    key: "rkp_matrik", icon: "table-properties", title: "Matrik RKPDesa",
+    description: "Matrik program dan kegiatan RKPDesa tahun berjalan.",
+    fields: accessFields(["No", "Bidang", "Sub Bidang", "Kegiatan", "Lokasi", "Volume", "Satuan", "Sasaran", "Waktu Pelaksanaan", "Jumlah (Rp)", "Sumber Dana", "Pola Pelaksanaan", "Pelaksana", "Indikator", "SDGs", "Keterangan"], ["Keterangan"]),
+  },
+  rkp_prioritas: {
+    key: "rkp_prioritas", icon: "list-ordered", title: "Penentuan Prioritas Kegiatan",
+    description: "Penilaian dan pemeringkatan usulan kegiatan RKPDesa.",
+    fields: accessFields(["No", "Usulan Kegiatan", "Mendesak", "Dirasakan Banyak Orang", "Menghambat Pendapatan", "Sering Terjadi/Berulang", "Tersedia Potensi", "Nilai", "Peringkat", "Keterangan"]),
+  },
+  rkp_pendapatan: {
+    key: "rkp_pendapatan", icon: "circle-dollar-sign", title: "Rencana Pendapatan Desa",
+    description: "Rencana pendapatan untuk tahun anggaran RKPDesa.",
+    fields: accessFields(["Tahun Anggaran", "Pendapatan Asli Desa (PAD)", "Dana Desa (DDS)", "Alokasi Dana Desa (ADD)", "Bagi Hasil Pajak dan Retribusi (PBH)", "Bantuan Keuangan Provinsi", "Bantuan Keuangan Kabupaten", "Pendapatan Lain-lain", "Jumlah Pendapatan", "Keterangan"]),
+  },
+  rkp_belanja: {
+    key: "rkp_belanja", icon: "receipt-text", title: "Rencana Belanja Desa",
+    description: "Rencana belanja per bidang dan kegiatan.",
+    fields: accessFields(["No", "Bidang", "Sub Bidang", "Kegiatan", "Belanja Pegawai", "Belanja Barang dan Jasa", "Belanja Modal", "Belanja Tak Terduga", "Jumlah Belanja", "Sumber Dana", "Keterangan"]),
+  },
+  rkp_pembiayaan: {
+    key: "rkp_pembiayaan", icon: "landmark", title: "Rencana Pembiayaan Desa",
+    description: "Penerimaan dan pengeluaran pembiayaan tahun anggaran.",
+    fields: accessFields(["No", "Jenis Pembiayaan", "Uraian", "Penerimaan Pembiayaan (Rp)", "Pengeluaran Pembiayaan (Rp)", "Pembiayaan Netto (Rp)", "Keterangan"], ["Uraian", "Keterangan"]),
+  },
+  rkp_dasar_hukum_perdes: {key:"rkp_dasar_hukum_perdes",icon:"scroll-text",title:"Dasar Hukum Perdes RKPDesa",description:"Dasar hukum penyusunan Perdes RKPDesa.",fields:accessFields(["No","Isi Dasar Hukum"],["Isi Dasar Hukum"])},
+  rkp_dasar_hukum_sk: {key:"rkp_dasar_hukum_sk",icon:"file-check-2",title:"Dasar Hukum SK Tim",description:"Dasar hukum penetapan tim penyusun RKPDesa.",fields:accessFields(["No","Isi Dasar Hukum"],["Isi Dasar Hukum"])},
+  rkp_ketentuan_umum: {key:"rkp_ketentuan_umum",icon:"book-open-text",title:"Ketentuan Umum Perdes RKPDesa",description:"Uraian istilah dan ketentuan umum pada Perdes.",fields:accessFields(["No","Uraian"],["Uraian"])},
+  rkp_cover: createReportTemplate("rkp_cover", "Cover RKPDesa"),
+  rkp_dokumen: createReportTemplate("rkp_dokumen", "Dokumen RKPDesa"),
+  rkp_perdes: createReportTemplate("rkp_perdes", "Perdes RKPDesa"),
+  rkp_sk_tim: createReportTemplate("rkp_sk_tim", "SK Tim Penyusun RKPDesa"),
+  rkp_ba_tim: createReportTemplate("rkp_ba_tim", "BA Pembentukan Tim"),
+  rkp_ba_musdes: createReportTemplate("rkp_ba_musdes", "BA Musdes RKPDesa"),
+  rkp_ba_musrenbang: createReportTemplate("rkp_ba_musrenbang", "BA Musrenbangdes"),
+  rkp_daftar_hadir: createReportTemplate("rkp_daftar_hadir", "Daftar Hadir"),
+  rkp_lampiran_matrik: createReportTemplate("rkp_lampiran_matrik", "Lampiran Matrik RKPDesa"),
+  rkp_pendahuluan: createReportTemplate("rkp_pendahuluan", "Pendahuluan"),
+  rkp_laporan_daftar_isi: createReportTemplate("rkp_laporan_daftar_isi", "Daftar Isi"),
+  rkp_bab_1: createReportTemplate("rkp_bab_1", "BAB I"),
+  rkp_bab_2: createReportTemplate("rkp_bab_2", "BAB II"),
+  rkp_bab_3: createReportTemplate("rkp_bab_3", "BAB III"),
+  rkp_bab_4: createReportTemplate("rkp_bab_4", "BAB IV"),
+  rkp_bab_5: createReportTemplate("rkp_bab_5", "BAB V"),
+  rkp_checklist: createReportTemplate("rkp_checklist", "Checklist RKPDesa"),
+  rkp_usulan_sdgs: createReportTemplate("rkp_usulan_sdgs", "Usulan Masyarakat Berdasarkan SDGs Desa"),
+  rkp_kerjasama: createReportTemplate("rkp_kerjasama", "Daftar Kerjasama"),
+  rkp_rancangan_laporan: createReportTemplate("rkp_rancangan_laporan", "Rancangan RKPDesa"),
+  rkp_du_rkp: createReportTemplate("rkp_du_rkp", "DU-RKP"),
+  rkp_ba_rancangan: createReportTemplate("rkp_ba_rancangan", "BA Hasil Penyusunan Rancangan RKP Desa"),
+  rkp_ba_pengesahan: createReportTemplate("rkp_ba_pengesahan", "BA Musdes Pengesahan RKP Desa"),
+  apb_data: {key:"apb_data",icon:"database",title:"Data APBDesa",description:"Identitas desa dan dokumen APBDesa.",fields:[
+    accessField("Provinsi"),accessField("Kabupaten"),accessField("Kecamatan"),accessField("Desa"),accessField("Alamat Desa","textarea"),accessField("Nama Kepala Desa"),accessField("Nama Sekretaris Desa"),accessField("Tahun Anggaran"),
+    {label:"Jenis Dokumen",name:"jenis_dokumen",type:"select",options:["APBDesa","Perubahan APBDesa"],value:"APBDesa"},accessField("Nomor Perdes"),accessField("Tanggal Perdes","date"),accessField("Nomor Perkades"),accessField("Tanggal Perkades","date"),accessField("Logo Kabupaten","file")
+  ]},
+  apb_akun: {key:"apb_akun",icon:"binary",title:"Akun/Rekening",description:"Referensi kode dan nama akun APBDesa.",fields:accessFields(["Kode Akun","Nama Akun","Kelompok","Jenis","Objek","Rincian Objek","Keterangan"],["Keterangan"])},
+  apb_bidang: {key:"apb_bidang",icon:"layout-list",title:"Bidang",description:"Referensi bidang APBDesa.",fields:accessFields(["Kode Bidang","Nama Bidang","Uraian Bidang","Keterangan"],["Uraian Bidang","Keterangan"])},
+  apb_subbidang: {key:"apb_subbidang",icon:"list-tree",title:"Sub Bidang",description:"Referensi sub bidang berdasarkan bidang APBDesa.",fields:accessFields(["Kode Bidang","Bidang","Kode Sub Bidang","Nama Sub Bidang","Keterangan"],["Keterangan"])},
+  apb_kegiatan: {key:"apb_kegiatan",icon:"list-checks",title:"Input Kegiatan",description:"Daftar kegiatan berdasarkan bidang dan sub bidang.",fields:[
+    accessField("Kode Bidang"),accessField("Bidang"),accessField("Kode Sub Bidang"),accessField("Sub Bidang"),accessField("Kode Kegiatan"),accessField("Nama Kegiatan"),accessField("Keluaran/Output"),accessField("Lokasi"),accessField("Volume"),accessField("Satuan"),accessField("Sasaran"),accessField("Waktu Pelaksanaan"),accessField("Tagging")
+  ]},
+  apb_paket_kegiatan: {key:"apb_paket_kegiatan",icon:"package-plus",title:"Input Paket Kegiatan",description:"Paket, pelaksana, lokasi, volume, dan sumber dana kegiatan.",fields:accessFields(["Kode Kegiatan","Nama Kegiatan","No Paket","Nama Paket Kegiatan","Pelaksana Kegiatan","Lokasi","Volume","Satuan","Sumber Dana","Pagu Anggaran","Keterangan"],["Keterangan"])},
+  apb_pendapatan: {key:"apb_pendapatan",icon:"circle-dollar-sign",title:"Pendapatan",description:"Rincian anggaran pendapatan desa.",fields:accessFields(["Kode Rekening","Kelompok Pendapatan","Jenis Pendapatan","Objek Pendapatan","Rincian Objek","Uraian","Volume","Satuan","Harga Satuan","Anggaran","Sumber Dana","Keterangan"],["Keterangan"])},
+  apb_pendapatan_perubahan: {key:"apb_pendapatan_perubahan",icon:"refresh-cw",title:"Pendapatan Perubahan",description:"Anggaran pendapatan sebelum dan setelah perubahan.",fields:accessFields(["Kode Rekening","Uraian Pendapatan","Anggaran Sebelum","Anggaran Setelah","Bertambah/Berkurang","Persentase","Keterangan"],["Keterangan"])},
+  apb_belanja: {key:"apb_belanja",icon:"receipt-text",title:"Belanja",description:"Rincian belanja per bidang, kegiatan, dan rekening.",fields:accessFields(["Kode Bidang","Bidang","Kode Sub Bidang","Sub Bidang","Kode Kegiatan","Kegiatan","Kode Rekening","Jenis Belanja","Objek Belanja","Rincian Objek","Uraian Belanja","Volume","Satuan","Harga Satuan","Jumlah Anggaran","Sumber Dana","Tagging","Keterangan"],["Keterangan"])},
+  apb_belanja_perubahan: {key:"apb_belanja_perubahan",icon:"refresh-cw",title:"Belanja Perubahan",description:"Rincian belanja sebelum dan setelah perubahan.",fields:accessFields(["Kode Bidang","Bidang","Kegiatan","Kode Rekening","Uraian Belanja","Anggaran Sebelum","Anggaran Setelah","Bertambah/Berkurang","Sumber Dana","Keterangan"],["Keterangan"])},
+  apb_pembiayaan_1: {key:"apb_pembiayaan_1",icon:"landmark",title:"Penerimaan Pembiayaan",description:"Rincian penerimaan pembiayaan APBDesa.",fields:accessFields(["Kode Rekening","Kelompok Pembiayaan","Jenis Pembiayaan","Objek Pembiayaan","Rincian Objek","Uraian","Volume","Satuan","Harga Satuan","Jumlah Anggaran","Keterangan"],["Keterangan"])},
+  apb_pembiayaan_1_perubahan: {key:"apb_pembiayaan_1_perubahan",icon:"refresh-cw",title:"Perubahan Penerimaan Pembiayaan",description:"Penerimaan pembiayaan sebelum dan setelah perubahan.",fields:accessFields(["Kode Rekening","Uraian","Anggaran Sebelum","Anggaran Setelah","Bertambah/Berkurang","Keterangan"],["Keterangan"])},
+  apb_pembiayaan_2: {key:"apb_pembiayaan_2",icon:"hand-coins",title:"Pengeluaran Pembiayaan",description:"Rincian pengeluaran pembiayaan APBDesa.",fields:accessFields(["Kode Rekening","Kelompok Pembiayaan","Jenis Pembiayaan","Objek Pembiayaan","Rincian Objek","Uraian","Volume","Satuan","Harga Satuan","Jumlah Anggaran","Keterangan"],["Keterangan"])},
+  apb_pembiayaan_2_perubahan: {key:"apb_pembiayaan_2_perubahan",icon:"refresh-cw",title:"Perubahan Pengeluaran Pembiayaan",description:"Pengeluaran pembiayaan sebelum dan setelah perubahan.",fields:accessFields(["Kode Rekening","Uraian","Anggaran Sebelum","Anggaran Setelah","Bertambah/Berkurang","Keterangan"],["Keterangan"])},
+  apb_tagging: {key:"apb_tagging",icon:"tags",title:"Tagging",description:"Referensi tagging kegiatan dan belanja.",fields:accessFields(["Kode Tagging","Nama Tagging","Keterangan"],["Keterangan"])},
+  apb_satuan: {key:"apb_satuan",icon:"ruler",title:"Satuan",description:"Referensi satuan volume dan harga.",fields:accessFields(["Kode Satuan","Nama Satuan","Jenis Satuan","Keterangan"],["Keterangan"])},
+  apb_user: {key:"apb_user",icon:"users",title:"User",description:"Pengguna dan hak akses aplikasi APBDesa.",fields:[accessField("User ID"),accessField("Nama"),{label:"Status",name:"status",type:"select",options:["Administrator","Operator","Viewer"],value:"Operator"},accessField("Sandi","password"),{label:"Aktif",name:"aktif",type:"select",options:["Ya","Tidak"],value:"Ya"}]},
+  apb_laporan_apbdes: createReportTemplate("apb_laporan_apbdes","APBDesa"),
+  apb_laporan_pendapatan: createReportTemplate("apb_laporan_pendapatan","Pendapatan"),
+  apb_laporan_belanja: createReportTemplate("apb_laporan_belanja","Belanja"),
+  apb_laporan_pembiayaan_1: createReportTemplate("apb_laporan_pembiayaan_1","Pembiayaan 1"),
+  apb_laporan_pembiayaan_2: createReportTemplate("apb_laporan_pembiayaan_2","Pembiayaan 2"),
+  apb_penjabaran: createReportTemplate("apb_penjabaran","Penjabaran APBDesa"),
+  apb_laporan_perubahan: createReportTemplate("apb_laporan_perubahan","Perubahan APBDesa"),
+  apb_penjabaran_perubahan: createReportTemplate("apb_penjabaran_perubahan","Penjabaran Perubahan APBDesa"),
 };
 
 const theme = {
@@ -557,6 +797,139 @@ function createMaterialField(field) {
   return label;
 }
 
+const profileVillageSteps = [
+  {title:"Pertumbuhan Penduduk",description:"Pertumbuhan, jenis kelamin, dan jumlah keluarga.",icon:"users",fields:["Tahun Data","Jumlah Penduduk Tahun Ini","Jumlah Penduduk Tahun Sebelumnya","Pertumbuhan Penduduk (%)","Jumlah Laki-laki","Jumlah Perempuan","Jumlah Kepala Keluarga"]},
+  {title:"Angkatan Kerja",description:"Penduduk usia kerja, bekerja, dan pengangguran.",icon:"briefcase-business",fields:["Penduduk Usia Kerja","Angkatan Kerja","Bekerja","Pengangguran","Bukan Angkatan Kerja","Tingkat Partisipasi Angkatan Kerja (%)"]},
+  {title:"Pendidikan",description:"Tingkat pendidikan penduduk desa.",icon:"graduation-cap",fields:["Tidak/Belum Sekolah","Belum Tamat SD","Tamat SD/Sederajat","Tamat SMP/Sederajat","Tamat SMA/Sederajat","Diploma","Sarjana","Pascasarjana"]},
+  {title:"Kesehatan",description:"Kelahiran, kematian, gizi, sarana, dan tenaga kesehatan.",icon:"heart-pulse",fields:["Jumlah Kelahiran","Jumlah Kematian","Kematian Bayi","Ibu Hamil","Balita","Balita Gizi Buruk","Penyandang Disabilitas","Sarana Kesehatan","Tenaga Kesehatan"]},
+  {title:"Kemiskinan",description:"Keluarga sejahtera, penduduk miskin, dan bantuan sosial.",icon:"hand-heart",fields:["Jumlah Keluarga","Keluarga Pra Sejahtera","Keluarga Sejahtera I","Penduduk Miskin","Penerima Bantuan Sosial"]},
+  {title:"Ekonomi",description:"UMKM, BUM Desa, pasar, koperasi, serta kegiatan ekonomi.",icon:"chart-no-axes-combined",fields:["Jumlah UMKM","Jumlah BUM Desa","Pasar Desa","Koperasi","Usaha Perdagangan","Usaha Jasa","Pendapatan Rata-rata Penduduk"]},
+  {title:"Pertanian",description:"Jenis, komoditas, dan produksi pertanian tiga tahun.",icon:"sprout",fields:["Jenis","Komoditi","Produksi 3 Tahun Sebelumnya","Satuan 3 Tahun Sebelumnya","Produksi 2 Tahun Sebelumnya","Satuan 2 Tahun Sebelumnya","Produksi 1 Tahun Sebelumnya","Satuan 1 Tahun Sebelumnya"]},
+  {title:"Peternakan/Perikanan",description:"Populasi dan produksi peternakan atau perikanan.",icon:"fish",fields:["Jenis Ternak/Perikanan","Komoditas Ternak/Perikanan","Jumlah Populasi","Produksi per Tahun","Satuan Produksi"]},
+  {title:"Infrastruktur",description:"Jenis, lokasi, volume, kondisi, dan tahun pembangunan.",icon:"construction",fields:["Jenis Infrastruktur","Lokasi Infrastruktur","Volume","Satuan","Kondisi","Tahun Pembangunan","Keterangan Infrastruktur"]},
+  {title:"Irigasi",description:"Jaringan irigasi, luas layanan, kondisi, dan penerima manfaat.",icon:"waves",fields:["Nama/Jenis Irigasi","Lokasi Irigasi","Panjang (Meter)","Luas Layanan (Ha)","Kondisi Irigasi","Jumlah Penerima Manfaat"]},
+  {title:"Pemukiman",description:"Kondisi rumah, air bersih, sanitasi, dan listrik.",icon:"house",fields:["Jumlah Rumah","Rumah Layak Huni","Rumah Tidak Layak Huni","Akses Air Bersih","Akses Sanitasi","Akses Listrik","Jenis Permukiman","Keterangan Pemukiman"]},
+];
+
+const accessDatasheetKeys = new Set([
+  "input_daftar_isi", "input_misi_desa", "input_profil_desa", "input_rktl", "input_musdes",
+  "input_renc_pendapatan", "input_matrik", "input_musdus_kelompok", "program_masuk_desa",
+  "input_rekomendasi_sdgs", "input_prioritas", "inventaris_masalah", "inventaris_potensi",
+  "gagasan_dusun", "tim_penyusun", "dasar_hukum_perdes", "dasar_hukum_sk", "ketentuan_umum_perdes",
+  "sketsa_desa", "bagan_kelembagaan_input", "kalender_musim", "arah_kebijakan",
+  "rkp_daftar_isi", "rkp_misi_desa", "rkp_profil_desa", "rkp_tim_penyusun", "rkp_musdes",
+  "rkp_rktl", "rkp_pagu_indikatif", "rkp_program_masuk", "rkp_rancangan_kegiatan", "rkp_matrik",
+  "rkp_prioritas", "rkp_pendapatan", "rkp_belanja", "rkp_pembiayaan", "rkp_input_masalah",
+  "rkp_rekomendasi_sdgs", "rkp_evaluasi_sebelumnya", "rkp_dasar_hukum_perdes", "rkp_dasar_hukum_sk",
+  "rkp_ketentuan_umum", "rkp_ba_tim_input",
+  "apb_akun", "apb_bidang", "apb_subbidang", "apb_kegiatan", "apb_paket_kegiatan",
+  "apb_pendapatan", "apb_pendapatan_perubahan", "apb_belanja", "apb_belanja_perubahan",
+  "apb_pembiayaan_1", "apb_pembiayaan_1_perubahan", "apb_pembiayaan_2", "apb_pembiayaan_2_perubahan",
+  "apb_tagging", "apb_satuan", "apb_user",
+]);
+
+function getProfileVillageStepIndex(field) {
+  const stepIndex = profileVillageSteps.findIndex((step) => step.fields.includes(field.label));
+  return stepIndex === -1 ? 0 : stepIndex;
+}
+
+function createMaterialSectionSteps(template) {
+  if (["input_profil_desa", "rkp_profil_desa"].includes(template.key)) return profileVillageSteps;
+
+  const fields = template.fields || [];
+  const stepCount = Math.max(1, Math.min(6, Math.ceil(fields.length / 4)));
+  const fieldsPerStep = Math.max(1, Math.ceil(fields.length / stepCount));
+  const icons = ["list-start", "list-todo", "clipboard-list", "files", "layout-list", "list-checks"];
+  const steps = [];
+
+  for (let index = 0; index < fields.length; index += fieldsPerStep) {
+    const stepFields = fields.slice(index, index + fieldsPerStep);
+    const stepNumber = steps.length + 1;
+    steps.push({
+      title: `Bagian ${stepNumber}`,
+      description: `Lengkapi isian ${index + 1}–${index + stepFields.length} untuk ${template.title}.`,
+      icon: icons[steps.length] || "circle-dot",
+      fields: stepFields.map((field) => field.label),
+    });
+  }
+
+  return steps.length ? steps : [{ title: "Bagian 1", description: template.description, icon: "list-start", fields: [] }];
+}
+
+function getMaterialSectionStepIndex(field) {
+  const stepIndex = currentMaterialSectionSteps.findIndex((step) => step.fields.includes(field.label));
+  return stepIndex === -1 ? 0 : stepIndex;
+}
+
+function activateMaterialSectionStep(stepIndex) {
+  if (!materialAutoForm) return;
+  const safeIndex = Math.max(0, Math.min(stepIndex, currentMaterialSectionSteps.length - 1));
+  const step = currentMaterialSectionSteps[safeIndex];
+  if (!step) return;
+
+  materialAutoForm.querySelectorAll("[data-material-step-button]").forEach((button) => {
+    const isActive = Number(button.dataset.materialStepButton) === safeIndex;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-current", isActive ? "step" : "false");
+  });
+
+  materialAutoForm.querySelectorAll("[data-material-step-field]").forEach((field) => {
+    field.hidden = Number(field.dataset.materialStepField) !== safeIndex;
+  });
+
+  const title = materialAutoForm.querySelector("#materialStepTitle");
+  const description = materialAutoForm.querySelector("#materialStepDescription");
+  if (title) title.textContent = step.title;
+  if (description) description.textContent = step.description;
+}
+
+function createMaterialSectionNavigation(template, isProfileVillageForm) {
+  const fragment = document.createDocumentFragment();
+  const overview = document.createElement("section");
+  overview.className = "profile-village-overview span-2";
+  overview.innerHTML = `
+    <div class="profile-village-mark"><i data-lucide="${isProfileVillageForm ? "map-pinned" : template.icon}"></i></div>
+    <div class="profile-village-copy">
+      <span>${isProfileVillageForm ? "PROFIL DESA" : activeMaterialModule.title.toUpperCase()}</span>
+      <h3>${isProfileVillageForm ? "Data Profil dan Wilayah" : template.title}</h3>
+      <p>${isProfileVillageForm ? "Lengkapi informasi desa secara bertahap melalui subbagian di bawah ini." : template.description}</p>
+    </div>
+    <div class="profile-village-status"><i data-lucide="${isProfileVillageForm ? "shield-check" : "list-checks"}"></i> ${isProfileVillageForm ? "RPJMDesa" : "Form Bertahap"}</div>
+  `;
+  fragment.append(overview);
+
+  const stepper = document.createElement("nav");
+  stepper.className = "profile-village-stepper span-2";
+  stepper.style.setProperty("--material-step-count", String(Math.min(currentMaterialSectionSteps.length, 6)));
+  stepper.setAttribute("aria-label", `Subbagian ${template.title}`);
+  currentMaterialSectionSteps.forEach((step, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "profile-step-button";
+    button.dataset.materialStepButton = String(index);
+    button.innerHTML = `
+      <span class="profile-step-circle"><i data-lucide="${step.icon}"></i></span>
+      <strong>${step.title}</strong>
+      <small>${step.fields.length} isian</small>
+    `;
+    button.addEventListener("click", () => activateMaterialSectionStep(index));
+    stepper.append(button);
+  });
+  fragment.append(stepper);
+
+  const caption = document.createElement("div");
+  caption.className = "profile-step-caption span-2";
+  caption.innerHTML = `
+    <div class="profile-step-caption-icon"><i data-lucide="info"></i></div>
+    <div>
+      <strong id="materialStepTitle">${currentMaterialSectionSteps[0].title}</strong>
+      <p id="materialStepDescription">${currentMaterialSectionSteps[0].description}</p>
+    </div>
+  `;
+  fragment.append(caption);
+  return fragment;
+}
+
 function renderMaterialForm(formKey = "dashboard") {
   const template = materialFormTemplates[formKey] || materialFormTemplates.dashboard;
   if (!materialAutoForm || !template) return;
@@ -573,8 +946,34 @@ function renderMaterialForm(formKey = "dashboard") {
   }
 
   materialAutoForm.innerHTML = "";
+  const isProfileVillageForm = ["input_profil_desa", "rkp_profil_desa"].includes(template.key);
+  const isSectionedMaterialForm = template.key !== "dashboard";
+  const isAccessDatasheet = accessDatasheetKeys.has(template.key);
+  if (addMaterialTableRowButton) addMaterialTableRowButton.hidden = !isAccessDatasheet;
+  currentMaterialSectionSteps = isSectionedMaterialForm ? createMaterialSectionSteps(template) : [];
+  materialAutoForm.classList.toggle("is-profile-village-form", isProfileVillageForm);
+  materialAutoForm.classList.toggle("is-sectioned-material-form", isSectionedMaterialForm);
+  materialAutoForm.classList.toggle("is-access-datasheet-form", isAccessDatasheet);
+  materialFormPanel?.classList.toggle("is-profile-village-mode", isSectionedMaterialForm);
+  adminView?.classList.toggle("is-profile-village-view", isSectionedMaterialForm);
+
+  if (isSectionedMaterialForm) {
+    materialAutoForm.append(createMaterialSectionNavigation(template, isProfileVillageForm));
+  }
+
+  const fieldsTarget = isAccessDatasheet ? document.createElement("div") : materialAutoForm;
+  if (isAccessDatasheet) {
+    fieldsTarget.className = "access-datasheet-fields span-2";
+    materialAutoForm.append(fieldsTarget);
+  }
+
   template.fields.forEach((field) => {
-    materialAutoForm.append(createMaterialField(field));
+    const fieldControl = createMaterialField(field);
+    if (isSectionedMaterialForm) {
+      fieldControl.classList.add("profile-village-field");
+      fieldControl.dataset.materialStepField = String(getMaterialSectionStepIndex(field));
+    }
+    fieldsTarget.append(fieldControl);
   });
 
   const actions = document.createElement("div");
@@ -584,6 +983,10 @@ function renderMaterialForm(formKey = "dashboard") {
     <button type="reset"><i data-lucide="rotate-ccw"></i>Reset</button>
   `;
   materialAutoForm.append(actions);
+
+  if (isSectionedMaterialForm) {
+    activateMaterialSectionStep(0);
+  }
 
   if (window.lucide) {
     lucide.createIcons();
@@ -641,18 +1044,58 @@ function renderMaterialResultHeader(template) {
   const headerRow = document.createElement("tr");
   const table = materialResultHead.closest("table");
 
-  [...visibleFields.map((field) => field.label), "Aksi"].forEach((label) => {
+  let storedWidths = {};
+  try {
+    storedWidths = JSON.parse(localStorage.getItem(`${materialStorageKey}-column-widths-${template.key}`) || "{}");
+  } catch (error) {
+    storedWidths = {};
+  }
+
+  [...visibleFields.map((field) => field.label), "Aksi"].forEach((label, columnIndex) => {
     const headerCell = document.createElement("th");
-    headerCell.textContent = label;
+    const columnKey = columnIndex < visibleFields.length ? visibleFields[columnIndex].name : "aksi";
+    const savedWidth = Number(storedWidths[columnKey]) || (columnKey === "aksi" ? 168 : 150);
+    headerCell.dataset.columnKey = columnKey;
+    headerCell.dataset.columnIndex = String(columnIndex);
+    headerCell.style.width = `${savedWidth}px`;
+    headerCell.style.minWidth = `${savedWidth}px`;
+    headerCell.style.maxWidth = `${savedWidth}px`;
+    const labelSpan = document.createElement("span");
+    labelSpan.textContent = label;
+    const resizeHandle = document.createElement("button");
+    resizeHandle.type = "button";
+    resizeHandle.className = "column-resize-handle";
+    resizeHandle.dataset.resizeColumn = columnKey;
+    resizeHandle.setAttribute("aria-label", `Ubah lebar kolom ${label}`);
+    resizeHandle.title = "Tarik untuk mengubah lebar kolom";
+    headerCell.append(labelSpan, resizeHandle);
     headerRow.append(headerCell);
   });
 
   if (table) {
-    table.style.minWidth = `${Math.max(960, (visibleFields.length + 1) * 150)}px`;
+    table.style.tableLayout = "fixed";
+    const totalWidth = [...visibleFields.map((field) => field.name), "aksi"].reduce((sum, key) => sum + (Number(storedWidths[key]) || (key === "aksi" ? 168 : 150)), 0);
+    table.style.minWidth = `${Math.max(960, totalWidth)}px`;
   }
 
   materialResultHead.innerHTML = "";
   materialResultHead.append(headerRow);
+}
+
+function applyMaterialColumnWidth(table, columnIndex, width) {
+  const safeWidth = Math.max(90, Math.min(600, Math.round(width)));
+  table?.querySelectorAll("tr").forEach((row) => {
+    const cell = row.children[columnIndex];
+    if (!cell) return;
+    cell.style.width = `${safeWidth}px`;
+    cell.style.minWidth = `${safeWidth}px`;
+    cell.style.maxWidth = `${safeWidth}px`;
+  });
+  if (table) {
+    const widths = Array.from(table.querySelectorAll("thead th")).map((cell) => parseFloat(cell.style.width) || 150);
+    table.style.minWidth = `${Math.max(960, widths.reduce((sum, value) => sum + value, 0))}px`;
+  }
+  return safeWidth;
 }
 
 function createMaterialManualControl(field) {
@@ -687,10 +1130,11 @@ function renderMaterialManualInputRow(template, visibleFields) {
   const actionCell = document.createElement("td");
   actionCell.className = "table-action-buttons";
   const editButton = document.createElement("button");
-  editButton.className = "material-edit-row";
+  editButton.className = "material-save-row";
   editButton.type = "button";
   editButton.dataset.manualSave = template.key;
-  editButton.innerHTML = '<i data-lucide="pencil"></i>Edit';
+  editButton.setAttribute("aria-label", "Simpan baris baru");
+  editButton.innerHTML = '<i data-lucide="save"></i>Simpan';
 
   const saveButton = document.createElement("button");
   saveButton.className = "material-delete-row";
@@ -1218,11 +1662,51 @@ materialResultRows?.addEventListener("input", (event) => {
   ensureTrailingBlankMaterialRow();
 });
 
+document.addEventListener("pointerdown", (event) => {
+  const handle = event.target.closest(".column-resize-handle");
+  if (!handle) return;
+  event.preventDefault();
+  const header = handle.closest("th");
+  const table = header?.closest("table");
+  if (!header || !table) return;
+
+  const startX = event.clientX;
+  const startWidth = header.getBoundingClientRect().width;
+  const columnIndex = Number(header.dataset.columnIndex);
+  const columnKey = header.dataset.columnKey;
+  handle.classList.add("is-resizing");
+  document.body.classList.add("is-resizing-column");
+
+  const onMove = (moveEvent) => {
+    applyMaterialColumnWidth(table, columnIndex, startWidth + moveEvent.clientX - startX);
+  };
+  const onEnd = () => {
+    document.removeEventListener("pointermove", onMove);
+    document.removeEventListener("pointerup", onEnd);
+    handle.classList.remove("is-resizing");
+    document.body.classList.remove("is-resizing-column");
+    const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
+    let widths = {};
+    try { widths = JSON.parse(localStorage.getItem(`${materialStorageKey}-column-widths-${template.key}`) || "{}"); } catch (error) { widths = {}; }
+    widths[columnKey] = Math.round(header.getBoundingClientRect().width);
+    try { localStorage.setItem(`${materialStorageKey}-column-widths-${template.key}`, JSON.stringify(widths)); } catch (error) {}
+  };
+  document.addEventListener("pointermove", onMove);
+  document.addEventListener("pointerup", onEnd, {once:true});
+});
+
 clearMaterialTableButton?.addEventListener("click", () => {
   const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
   materialSavedRows = materialSavedRows.filter((row) => !isMaterialRowForTemplate(row, template));
   saveMaterialRows();
   renderMaterialResultTable();
+});
+
+addMaterialTableRowButton?.addEventListener("click", () => {
+  const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
+  const row = renderMaterialManualInputRow(template, getMaterialVisibleFields(template));
+  row?.querySelector(".material-sheet-cell")?.focus();
+  row?.scrollIntoView({behavior:"smooth",block:"nearest",inline:"start"});
 });
 
 desaDataForm?.addEventListener("submit", async (event) => {
