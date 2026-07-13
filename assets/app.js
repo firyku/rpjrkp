@@ -340,7 +340,7 @@ const materialFormTemplates = {
     icon: "target",
     title: "Input Misi Desa",
     description: "Form mengikuti tabel Access misi.",
-    fields: accessFields(["Misi Desa", "No Urut"], ["Misi Desa"]),
+    fields: accessFields(["No Urut", "Misi Desa"], ["Misi Desa"]),
   },
   input_profil_desa: {
     key: "input_profil_desa",
@@ -1065,6 +1065,10 @@ function renderMaterialForm(formKey = "dashboard") {
         }
       }
     }
+    
+    // Fill Nama Kepala Desa from desa data
+    const namaKadesField = materialAutoForm?.querySelector('[name="nama_kepala_desa"]');
+    if (namaKadesField && latestDesa.nama_kepala_desa) namaKadesField.value = latestDesa.nama_kepala_desa;
     
     // Auto-fill other fields from desa data
     const desaField = materialAutoForm?.querySelector('[name="desa"]');
@@ -2057,6 +2061,23 @@ if (window.bootstrap) {
 if (window.lucide) {
   lucide.createIcons();
 }
+
+// Update account text with desa data
+(function updateDesaAccountText() {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem("rpjrkp-dashboard-data-desa") || "[]");
+    if (saved.length > 0) {
+      const data = saved[0];
+      const span = document.querySelector(".template-account span");
+      if (span && data.desa) {
+        const desa = data.desa || "";
+        const kec = data.kecamatan || "";
+        const kab = data.kabupaten || "";
+        span.textContent = desa + ", " + kec + ". " + kab;
+      }
+    }
+  } catch (e) {}
+})();
 // --- EXCEL IMPORT / EXPORT LOGIC ---
 const exportExcelBtn = document.querySelector("#exportExcelBtn");
 const importExcelBtn = document.querySelector("#importExcelBtn");
