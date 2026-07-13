@@ -190,9 +190,13 @@ function accessField(label, type = "text") {
   };
 }
 
-function accessFields(columns, textareaColumns = []) {
+function accessFields(columns, textareaColumns = [], fileColumns = []) {
   const textareaSet = new Set(textareaColumns);
-  return columns.map((label) => accessField(label, textareaSet.has(label) ? "textarea" : "text"));
+  const fileSet = new Set(fileColumns);
+  return columns.map((label) => {
+    if (fileSet.has(label)) return accessField(label, "file");
+    return accessField(label, textareaSet.has(label) ? "textarea" : "text");
+  });
 }
 
 const detailedProfileFields = accessFields([
@@ -329,7 +333,7 @@ const materialFormTemplates = {
       "Tanggal Penetapan perdes", "Tanggal Pengundangan perdes", "Tanggal Pengundangan perdes RPJMDes",
       "Tanggal Penyusunan", "Tanggal_Penyusunan_RPJMDes", "Tentang_Perdes_RPJMDes",
       "Tgl Penetapan Perdes RPJMDesa", "Visi Desa",
-    ], ["Baground Caver", "Foto_Kades", "Gambar_cover_RPJMdesa", "Ganbar_Bagan_kelembagaan", "Ganbar_sketsa_desa", "LOGO KAB", "LOGO KEMENTRIAN", "Tentang_Perdes_RPJMDes"]),
+    ], ["LOGO KAB", "LOGO KEMENTRIAN", "Tentang_Perdes_RPJMDes"], ["Baground Caver", "Foto_Kades", "Gambar_cover_RPJMdesa", "Ganbar_Bagan_kelembagaan", "Ganbar_sketsa_desa"]),
   },
   input_misi_desa: {
     key: "input_misi_desa",
@@ -784,6 +788,28 @@ function createMaterialField(field) {
       option.selected = optionLabel === field.value;
       control.append(option);
     });
+  } else if (field.type === "file") {
+    control = document.createElement("input");
+    control.type = "file";
+    control.accept = field.accept || "image/*";
+    const preview = document.createElement("img");
+    preview.className = "material-file-preview";
+    preview.hidden = true;
+    preview.alt = "Pratinjau " + field.label;
+    control.addEventListener("change", () => {
+      const file = control.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+          preview.src = reader.result;
+          preview.hidden = false;
+        });
+        reader.readAsDataURL(file);
+      } else {
+        preview.hidden = true;
+      }
+    });
+    label.append(preview);
   } else {
     control = document.createElement("input");
     control.type = field.type || "text";
@@ -791,7 +817,7 @@ function createMaterialField(field) {
 
   control.name = field.name;
   if (field.placeholder) control.placeholder = field.placeholder;
-  if (field.value && field.type !== "select") control.value = field.value;
+  if (field.value && field.type !== "select" && field.type !== "file") control.value = field.value;
   label.append(control);
 
   return label;
@@ -1007,13 +1033,37 @@ function renderMaterialForm(formKey = "dashboard") {
   renderMaterialResultTable();
 }
 
-function getMaterialFormValues() {
+async function getMaterialFormValues() {
   const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
   const values = [];
+  const filePromises = [];
 
   template.fields.forEach((field) => {
     const control = materialAutoForm?.elements[field.name];
     if (!control) return;
+    if (field.type === "file") {
+      const file = control.files?.[0];
+      if (file) {
+        const promise = new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.addEventListener("load", () => {
+            resolve({
+              label: field.label,
+              name: field.name,
+              value: JSON.stringify({name: file.name, dataUrl: reader.result}),
+            });
+          });
+          reader.addEventListener("error", () => {
+            resolve({label: field.label, name: field.name, value: "-"});
+          });
+          reader.readAsDataURL(file);
+        });
+        filePromises.push(promise);
+      } else {
+        values.push({label: field.label, name: field.name, value: "-"});
+      }
+      return;
+    }
     values.push({
       label: field.label,
       name: field.name,
@@ -1021,7 +1071,8 @@ function getMaterialFormValues() {
     });
   });
 
-  return values;
+  const fileValues = await Promise.all(filePromises);
+  return [...values, ...fileValues];
 }
 
 function getMaterialVisibleFields(template) {
@@ -1043,7 +1094,14 @@ function getMaterialValueMap(row) {
 
 function getMaterialRowValue(row, field) {
   const valueMap = getMaterialValueMap(row);
-  return valueMap[field.name] || valueMap[field.label] || "-";
+  const raw = valueMap[field.name] || valueMap[field.label] || "-";
+  if (field.type === "file" && raw !== "-") {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed?.dataUrl) return {_isFileValue: true, ...parsed};
+    } catch (e) {}
+  }
+  return raw;
 }
 
 function isMaterialRowForTemplate(row, template) {
@@ -1196,7 +1254,15 @@ function renderMaterialResultTable() {
 
     visibleFields.map((field) => getMaterialRowValue(row, field)).forEach((value) => {
       const cell = document.createElement("td");
-      cell.textContent = value;
+      if (value && typeof value === "object" && value._isFileValue && value.dataUrl) {
+        const img = document.createElement("img");
+        img.className = "desa-logo-thumb";
+        img.src = value.dataUrl;
+        img.alt = value.name || "File";
+        cell.append(img);
+      } else {
+        cell.textContent = value;
+      }
       tableRow.append(cell);
     });
 
@@ -1280,9 +1346,9 @@ function addMaterialSavedRow(template, values) {
   renderMaterialResultTable();
 }
 
-function addMaterialResultRow() {
+async function addMaterialResultRow() {
   const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
-  const values = getMaterialFormValues();
+  const values = await getMaterialFormValues();
   addMaterialSavedRow(template, values);
 }
 
@@ -1604,11 +1670,11 @@ materialMenuLinks.forEach((link) => {
   });
 });
 
-materialAutoForm?.addEventListener("submit", (event) => {
+materialAutoForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const submitButton = materialAutoForm.querySelector('[type="submit"]');
   if (!submitButton) return;
-  addMaterialResultRow();
+  await addMaterialResultRow();
   const originalText = submitButton.innerHTML;
   submitButton.innerHTML = '<i data-lucide="check"></i>Tersimpan';
   submitButton.classList.add("is-saved");
