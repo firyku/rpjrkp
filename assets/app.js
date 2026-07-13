@@ -333,7 +333,7 @@ const materialFormTemplates = {
       "Tanggal Penetapan perdes", "Tanggal Pengundangan perdes", "Tanggal Pengundangan perdes RPJMDes",
       "Tanggal Penyusunan", "Tanggal_Penyusunan_RPJMDes", "Tentang_Perdes_RPJMDes",
       "Tgl Penetapan Perdes RPJMDesa", "Visi Desa",
-    ], ["LOGO KEMENTRIAN", "Tentang_Perdes_RPJMDes"], ["Baground Caver", "Foto_Kades", "Gambar_cover_RPJMdesa", "Ganbar_Bagan_kelembagaan", "Ganbar_sketsa_desa", "LOGO KAB"]),
+    ], ["LOGO KEMENTRIAN", "Tentang_Perdes_RPJMDes"], ["Baground Caver", "Gambar_cover_RPJMdesa", "Ganbar_Bagan_kelembagaan", "Ganbar_sketsa_desa"]),
   },
   input_misi_desa: {
     key: "input_misi_desa",
@@ -1028,6 +1028,63 @@ function renderMaterialForm(formKey = "dashboard") {
 
   if (window.lucide) {
     lucide.createIcons();
+  }
+
+  // Auto-fill LOGO KAB, Foto_Kades, and Masa Bakti RPJMDesa from saved desa data
+  if (formKey === "input_data_umum" && desaSavedRows.length > 0) {
+    const latestDesa = desaSavedRows[0];
+    
+    // Fill LOGO KAB display
+    const logoKabField = materialAutoForm?.querySelector("[name="logo_kab"]");
+    if (logoKabField && latestDesa.logo_kabupaten?.dataUrl) {
+      const label = logoKabField.closest("label");
+      if (label) {
+        label.classList.add("desa-data-field");
+        const span = label.querySelector("span");
+        if (span) span.textContent = "Logo Kabupaten";
+        logoKabField.style.display = "none";
+        const existingImg = label.querySelector(".desa-sym-img");
+        if (!existingImg) {
+          const img = document.createElement("img");
+          img.className = "desa-sym-img";
+          img.src = latestDesa.logo_kabupaten.dataUrl;
+          img.alt = "Logo Kabupaten";
+          label.append(img);
+        }
+      }
+    }
+    
+    // Fill Foto Kades display
+    const fotoKadesField = materialAutoForm?.querySelector("[name="foto_kades"]");
+    if (fotoKadesField && latestDesa.foto_kades?.dataUrl) {
+      const label = fotoKadesField.closest("label");
+      if (label) {
+        label.classList.add("desa-data-field");
+        const span = label.querySelector("span");
+        if (span) span.textContent = "Foto Kepala Desa";
+        fotoKadesField.style.display = "none";
+        const existingImg = label.querySelector(".desa-sym-img");
+        if (!existingImg) {
+          const img = document.createElement("img");
+          img.className = "desa-sym-img";
+          img.src = latestDesa.foto_kades.dataUrl;
+          img.alt = "Foto Kepala Desa";
+          label.append(img);
+        }
+      }
+    }
+    
+    // Fill Masa Bakti RPJMDesa (from tahun_anggaran or perdes info)
+    const namaKadesField = materialAutoForm?.querySelector("[name="nama_kepala_desa"]");
+    if (namaKadesField && latestDesa.tahun_anggaran) {
+      const tahun = latestDesa.tahun_anggaran;
+      const label = namaKadesField.closest("label");
+      if (label) {
+        const span = label.querySelector("span");
+        if (span) span.textContent = "Masa Bakti RPJMDesa";
+        namaKadesField.value = tahun + " s/d " + (String(Number(tahun) + 5));
+      }
+    }
   }
 
   renderMaterialResultTable();

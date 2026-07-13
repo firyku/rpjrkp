@@ -1218,3 +1218,21 @@ body.is-resizing-column * { cursor: col-resize !important; user-select: none !im
   object-fit: contain;
   background: #f3f4f6;
 }
+
+
+.desa-data-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.desa-sym-img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  margin-top: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
