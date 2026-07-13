@@ -987,10 +987,10 @@ function renderMaterialForm(formKey = "dashboard") {
   materialAutoForm.classList.toggle("is-sectioned-material-form", isSectionedMaterialForm);
   materialAutoForm.classList.toggle("is-access-datasheet-form", isAccessDatasheet);
 
-  // Sembunyikan panel hasil (Tabel yang berhasil di input) untuk form tabel
+  // Tampilkan panel hasil untuk form tabel (access datasheet)
   const materialResultPanel = document.querySelector(".material-result-panel");
   if (materialResultPanel) {
-    materialResultPanel.hidden = isAccessDatasheet;
+    materialResultPanel.hidden = false;
   }
   materialFormPanel?.classList.toggle("is-profile-village-mode", isSectionedMaterialForm);
   adminView?.classList.toggle("is-profile-village-view", isSectionedMaterialForm);
