@@ -1034,51 +1034,25 @@ function renderMaterialForm(formKey = "dashboard") {
   if (formKey === "input_data_umum" && desaSavedRows.length > 0) {
     const latestDesa = desaSavedRows[0];
     
-    // Fill LOGO KAB display
+    // Change LOGO KAB label to Nama Desa
     const logoKabField = materialAutoForm?.querySelector('[name="logo_kab"]');
-    if (logoKabField && latestDesa.logo_kabupaten?.dataUrl) {
+    if (logoKabField) {
       const label = logoKabField.closest("label");
       if (label) {
-        label.classList.add("desa-data-field");
         const span = label.querySelector("span");
         if (span) span.textContent = "Nama Desa";
-        logoKabField.style.display = "none";
-        const existingImg = label.querySelector(".desa-sym-img");
-        if (!existingImg) {
-          const img = document.createElement("img");
-          img.className = "desa-sym-img";
-          img.src = latestDesa.logo_kabupaten.dataUrl;
-          img.alt = "Nama Desa";
-          label.append(img);
-          const namaText = document.createElement("div");
-          namaText.className = "desa-data-caption";
-          namaText.textContent = latestDesa.desa || "-";
-          label.append(namaText);
-        }
+        if (latestDesa.desa) logoKabField.value = latestDesa.desa;
       }
     }
     
-    // Fill Foto Kades display
+    // Change Foto_Kades label to Nama Kepala Desa
     const fotoKadesField = materialAutoForm?.querySelector('[name="foto_kades"]');
-    if (fotoKadesField && latestDesa.foto_kades?.dataUrl) {
+    if (fotoKadesField) {
       const label = fotoKadesField.closest("label");
       if (label) {
-        label.classList.add("desa-data-field");
         const span = label.querySelector("span");
         if (span) span.textContent = "Nama Kepala Desa";
-        fotoKadesField.style.display = "none";
-        const existingImg = label.querySelector(".desa-sym-img");
-        if (!existingImg) {
-          const img = document.createElement("img");
-          img.className = "desa-sym-img";
-          img.src = latestDesa.foto_kades.dataUrl;
-          img.alt = "Nama Kepala Desa";
-          label.append(img);
-          const kadesText = document.createElement("div");
-          kadesText.className = "desa-data-caption";
-          kadesText.textContent = latestDesa.nama_kepala_desa || "-";
-          label.append(kadesText);
-        }
+        if (latestDesa.nama_kepala_desa) fotoKadesField.value = latestDesa.nama_kepala_desa;
       }
     }
     
