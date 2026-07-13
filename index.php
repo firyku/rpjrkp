@@ -501,7 +501,7 @@ $isAdminView = $currentView !== 'dashboard';
                 </thead>
                 <tbody id="desaDataRows">
                   <tr class="material-empty-row">
-                    <td colspan="12">Belum ada Data Desa yang berhasil diinput.</td>
+                    <td colspan="17">Belum ada Data Desa yang berhasil diinput.</td>
                   </tr>
                 </tbody>
               </table>

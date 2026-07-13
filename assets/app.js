@@ -1381,7 +1381,7 @@ function renderDesaDataTable() {
   if (desaSavedRows.length === 0) {
     const emptyRow = document.createElement("tr");
     emptyRow.className = "material-empty-row";
-    emptyRow.innerHTML = '<td colspan="12">Belum ada Data Desa yang berhasil diinput.</td>';
+    emptyRow.innerHTML = '<td colspan="17">Belum ada Data Desa yang berhasil diinput.</td>';
     desaDataRows.append(emptyRow);
     return;
   }
@@ -1410,6 +1410,20 @@ function renderDesaDataTable() {
         image.className = "desa-logo-thumb";
         image.src = row[key].dataUrl;
         image.alt = row[key].name || "Logo";
+        cell.append(image);
+      } else {
+        cell.textContent = "-";
+      }
+      tableRow.append(cell);
+    });
+
+    ["background_cover", "foto_kades", "gambar_cover_rpjmdesa", "gambar_bagan_kelembagaan", "gambar_sketsa_desa"].forEach((key) => {
+      const cell = document.createElement("td");
+      if (row[key]?.dataUrl) {
+        const image = document.createElement("img");
+        image.className = "desa-logo-thumb";
+        image.src = row[key].dataUrl;
+        image.alt = row[key].name || key;
         cell.append(image);
       } else {
         cell.textContent = "-";
@@ -1458,6 +1472,11 @@ async function collectDesaFormData(existingRow = null) {
   }).format(new Date());
   const logoKementrian = await getFileData(desaDataForm, "logo_kementrian");
   const logoKabupaten = await getFileData(desaDataForm, "logo_kabupaten");
+  const backgroundCover = await getFileData(desaDataForm, "background_cover");
+  const fotoKades = await getFileData(desaDataForm, "foto_kades");
+  const gambarCoverRpjmdesa = await getFileData(desaDataForm, "gambar_cover_rpjmdesa");
+  const gambarBaganKelembagaan = await getFileData(desaDataForm, "gambar_bagan_kelembagaan");
+  const gambarSketsaDesa = await getFileData(desaDataForm, "gambar_sketsa_desa");
 
   return {
     id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -1492,6 +1511,11 @@ async function collectDesaFormData(existingRow = null) {
     profil_desa: getFormValue(desaDataForm, "profil_desa"),
     logo_kementrian: logoKementrian || existingRow?.logo_kementrian || null,
     logo_kabupaten: logoKabupaten || existingRow?.logo_kabupaten || null,
+    background_cover: backgroundCover || existingRow?.background_cover || null,
+    foto_kades: fotoKades || existingRow?.foto_kades || null,
+    gambar_cover_rpjmdesa: gambarCoverRpjmdesa || existingRow?.gambar_cover_rpjmdesa || null,
+    gambar_bagan_kelembagaan: gambarBaganKelembagaan || existingRow?.gambar_bagan_kelembagaan || null,
+    gambar_sketsa_desa: gambarSketsaDesa || existingRow?.gambar_sketsa_desa || null,
     tentang_perdes_rpjmdes: getFormValue(desaDataForm, "tentang_perdes_rpjmdes"),
     createdAt,
   };
@@ -1914,3 +1938,91 @@ if (window.bootstrap) {
 if (window.lucide) {
   lucide.createIcons();
 }
+// --- EXCEL IMPORT / EXPORT LOGIC ---
+const exportExcelBtn = document.querySelector("#exportExcelBtn");
+const importExcelBtn = document.querySelector("#importExcelBtn");
+const importExcelFile = document.querySelector("#importExcelFile");
+
+exportExcelBtn?.addEventListener("click", () => {
+  const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
+  const filteredRows = materialSavedRows.filter(row => row.formKey === currentMaterialFormKey || row.form === template.title);
+  if (filteredRows.length === 0) {
+    alert("Tidak ada data untuk diexport!");
+    return;
+  }
+
+  const data = filteredRows.map((row, index) => {
+    const item = { "No": index + 1 };
+    template.fields.forEach(field => {
+      const valObj = row.values ? row.values.find(v => v.name === field.name || v.label === field.label) : null;
+      item[field.label] = valObj ? valObj.value : "-";
+    });
+    return item;
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Data Tersimpan");
+  XLSX.writeFile(workbook, `data_${currentMaterialFormKey}.xlsx`);
+});
+
+importExcelBtn?.addEventListener("click", () => {
+  importExcelFile?.click();
+});
+
+importExcelFile?.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      const data = new Uint8Array(evt.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json(worksheet);
+
+      const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
+      const createdAt = new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(new Date());
+
+      json.forEach((item) => {
+        const values = [];
+        template.fields.forEach(field => {
+          const val = item[field.label] !== undefined ? String(item[field.label]) : "-";
+          values.push({
+            label: field.label,
+            name: field.name,
+            value: val
+          });
+        });
+
+        materialSavedRows.unshift({
+          id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          module: activeMaterialModule.title,
+          form: template.title,
+          formKey: currentMaterialFormKey,
+          summary: summarizeMaterialValues(values),
+          status: "Berhasil di input",
+          createdAt,
+          values
+        });
+      });
+
+      saveMaterialRows();
+      renderMaterialResultTable();
+      importExcelFile.value = "";
+      alert(`Berhasil mengimport ${json.length} baris data!`);
+    } catch(err) {
+      alert("Format berkas Excel tidak sesuai / gagal di-import!");
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
