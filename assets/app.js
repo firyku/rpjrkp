@@ -1041,15 +1041,19 @@ function renderMaterialForm(formKey = "dashboard") {
       if (label) {
         label.classList.add("desa-data-field");
         const span = label.querySelector("span");
-        if (span) span.textContent = "Logo Kabupaten";
+        if (span) span.textContent = "Nama Desa";
         logoKabField.style.display = "none";
         const existingImg = label.querySelector(".desa-sym-img");
         if (!existingImg) {
           const img = document.createElement("img");
           img.className = "desa-sym-img";
           img.src = latestDesa.logo_kabupaten.dataUrl;
-          img.alt = "Logo Kabupaten";
+          img.alt = "Nama Desa";
           label.append(img);
+          const namaText = document.createElement("div");
+          namaText.className = "desa-data-caption";
+          namaText.textContent = latestDesa.desa || "-";
+          label.append(namaText);
         }
       }
     }
@@ -1061,15 +1065,19 @@ function renderMaterialForm(formKey = "dashboard") {
       if (label) {
         label.classList.add("desa-data-field");
         const span = label.querySelector("span");
-        if (span) span.textContent = "Foto Kepala Desa";
+        if (span) span.textContent = "Nama Kepala Desa";
         fotoKadesField.style.display = "none";
         const existingImg = label.querySelector(".desa-sym-img");
         if (!existingImg) {
           const img = document.createElement("img");
           img.className = "desa-sym-img";
           img.src = latestDesa.foto_kades.dataUrl;
-          img.alt = "Foto Kepala Desa";
+          img.alt = "Nama Kepala Desa";
           label.append(img);
+          const kadesText = document.createElement("div");
+          kadesText.className = "desa-data-caption";
+          kadesText.textContent = latestDesa.nama_kepala_desa || "-";
+          label.append(kadesText);
         }
       }
     }

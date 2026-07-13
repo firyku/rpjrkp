@@ -917,10 +917,10 @@ $isAdminView = $currentView !== 'dashboard';
             <article class="material-stat-card">
               <div class="material-icon cyan"><i data-lucide="calendar-range"></i></div>
               <div>
-                <span>Masa Bakti RPJMDesa</span>
+                <span>Masa Jabatan RPJMDesa</span>
                 <strong><?= htmlspecialchars($activeAdmin['year'] ?? '-', ENT_QUOTES, 'UTF-8') ?></strong>
               </div>
-              <small><i data-lucide="clock"></i> Periode jabatan</small>
+              <small><i data-lucide="clock"></i> <?= htmlspecialchars($activeAdmin['year'] ?? '-', ENT_QUOTES, 'UTF-8') ?></small>
             </article>
           </section>
 
