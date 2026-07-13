@@ -333,7 +333,7 @@ const materialFormTemplates = {
       "Tanggal Penetapan perdes", "Tanggal Pengundangan perdes", "Tanggal Pengundangan perdes RPJMDes",
       "Tanggal Penyusunan", "Tanggal_Penyusunan_RPJMDes", "Tentang_Perdes_RPJMDes",
       "Tgl Penetapan Perdes RPJMDesa", "Visi Desa",
-    ], ["LOGO KAB", "LOGO KEMENTRIAN", "Tentang_Perdes_RPJMDes"], ["Baground Caver", "Foto_Kades", "Gambar_cover_RPJMdesa", "Ganbar_Bagan_kelembagaan", "Ganbar_sketsa_desa"]),
+    ], ["LOGO KEMENTRIAN", "Tentang_Perdes_RPJMDes"], ["Baground Caver", "Foto_Kades", "Gambar_cover_RPJMdesa", "Ganbar_Bagan_kelembagaan", "Ganbar_sketsa_desa", "LOGO KAB"]),
   },
   input_misi_desa: {
     key: "input_misi_desa",
