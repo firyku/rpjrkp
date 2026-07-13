@@ -466,6 +466,26 @@ $isAdminView = $currentView !== 'dashboard';
               <span>Logo Kabupaten</span>
               <input type="file" name="logo_kabupaten" accept="image/*">
             </label>
+            <label>
+              <span>Background Cover</span>
+              <input type="file" name="background_cover" accept="image/png,image/jpeg">
+            </label>
+            <label>
+              <span>Foto Kades</span>
+              <input type="file" name="foto_kades" accept="image/png,image/jpeg">
+            </label>
+            <label>
+              <span>Gambar Cover RPJMDesa</span>
+              <input type="file" name="gambar_cover_rpjmdesa" accept="image/png,image/jpeg">
+            </label>
+            <label>
+              <span>Gambar Bagan Kelembagaan</span>
+              <input type="file" name="gambar_bagan_kelembagaan" accept="image/png,image/jpeg">
+            </label>
+            <label>
+              <span>Gambar Sketsa Desa</span>
+              <input type="file" name="gambar_sketsa_desa" accept="image/png,image/jpeg">
+            </label>
             <label class="span-2">
               <span>Isian Tentang Perdes RPJMDesa</span>
               <textarea name="tentang_perdes_rpjmdes" rows="4">PERUBAHAN ATAS PERATURAN DESA NOMOR 3 TAHUN 2020 TENTANG RENCANA PEMBANGUNAN JANGKA MENENGAH DESA GUDANGHARJO KECAMATAN PARANGGUPITO TAHUN 2021 - 2028</textarea>
@@ -495,6 +515,11 @@ $isAdminView = $currentView !== 'dashboard';
                     <th>Status</th>
                     <th>Logo Kementrian</th>
                     <th>Logo Kabupaten</th>
+                    <th>Background Cover</th>
+                    <th>Foto Kades</th>
+                    <th>Cover RPJMDesa</th>
+                    <th>Bagan Kelembagaan</th>
+                    <th>Sketsa Desa</th>
                     <th>Waktu</th>
                     <th>Aksi</th>
                   </tr>
