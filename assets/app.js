@@ -322,10 +322,10 @@ const materialFormTemplates = {
     title: "Input Data Umum",
     description: "Form mengikuti tabel Access Data Umum.",
     fields: accessFields([
-      "ALAMAT DESA", "Baground Caver", "Desa", "Foto_Kades", "Gambar_cover_RPJMdesa",
+      "ALAMAT DESA", "Baground Caver", "Desa", "Nama Kepala Desa", "Gambar_cover_RPJMdesa",
       "Ganbar_Bagan_kelembagaan", "Ganbar_sketsa_desa", "Jenis_RPJMdes", "Jumlah Dusun (angka)",
-      "Jumlah Dusun (huruf)", "Jumlah Kepala Keluarga (KK)", "Kabupaten", "Kecamatan", "LOGO KAB",
-      "LOGO KEMENTRIAN", "Nama Kepala Desa", "Nama Ketua BPD", "Nama Ketua Tim", "Nama RKPDEsa",
+      "Jumlah Dusun (huruf)", "Jumlah Kepala Keluarga (KK)", "Kabupaten", "Kecamatan", "Nama Desa",
+      "LOGO KEMENTRIAN", "Nama Ketua BPD", "Nama Ketua Tim", "Nama RKPDEsa",
       "Nama Sekretaris Desa", "No Perdes RKPdesa", "No Perdes RPJMDEs yg di cabut", "No sk tim penyusun",
       "No sk tim penyusun RPJMDes", "Peiode RPJMDes Lama yang di cabut (mulai - akhir)", "Perdes RPJMdesa",
       "Periode RPJMDesa Ke", "Provinsi", "STATUS PERDES_RKPDes", "STATUS PERDES_RPJMDes",
@@ -1034,33 +1034,15 @@ function renderMaterialForm(formKey = "dashboard") {
   if (formKey === "input_data_umum" && desaSavedRows.length > 0) {
     const latestDesa = desaSavedRows[0];
     
-    // Change LOGO KAB label to Nama Desa
-    const logoKabField = materialAutoForm?.querySelector('[name="logo_kab"]');
-    if (logoKabField) {
-      const label = logoKabField.closest("label");
-      if (label) {
-        const span = label.querySelector("span");
-        if (span) span.textContent = "Nama Desa";
-        if (latestDesa.desa) logoKabField.value = latestDesa.desa;
-      }
-    }
+    // Fill Nama Desa from desa data
+    const namaDesaField = materialAutoForm?.querySelector('[name="nama_desa"]');
+    if (namaDesaField && latestDesa.desa) namaDesaField.value = latestDesa.desa;
     
-    // Change Foto_Kades label to Nama Kepala Desa
-    const fotoKadesField = materialAutoForm?.querySelector('[name="foto_kades"]');
-    if (fotoKadesField) {
-      const label = fotoKadesField.closest("label");
-      if (label) {
-        const span = label.querySelector("span");
-        if (span) span.textContent = "Nama Kepala Desa";
-        if (latestDesa.nama_kepala_desa) fotoKadesField.value = latestDesa.nama_kepala_desa;
-      }
-    }
-    
-    // Fill Nama Kepala Desa from desa data
+    // Fill Nama Kepala Desa from desa data (renamed from Foto_Kades)
     const namaKadesField = materialAutoForm?.querySelector('[name="nama_kepala_desa"]');
-    if (namaKadesField && latestDesa.nama_kepala_desa) {
-      namaKadesField.value = latestDesa.nama_kepala_desa;
-    }
+    if (namaKadesField && latestDesa.nama_kepala_desa) namaKadesField.value = latestDesa.nama_kepala_desa;
+    
+
     
     // Auto-fill other fields from desa data
     const desaField = materialAutoForm?.querySelector('[name="desa"]');
