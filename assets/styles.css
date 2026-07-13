@@ -1245,3 +1245,15 @@ body.is-resizing-column * { cursor: col-resize !important; user-select: none !im
   margin-top: 4px;
   text-align: center;
 }
+
+
+.desa-file-img {
+  display: block;
+  max-width: 100%;
+  max-height: 140px;
+  margin-top: 6px;
+  border-radius: 8px;
+  object-fit: contain;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+}

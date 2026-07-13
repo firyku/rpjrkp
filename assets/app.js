@@ -322,10 +322,10 @@ const materialFormTemplates = {
     title: "Input Data Umum",
     description: "Form mengikuti tabel Access Data Umum.",
     fields: accessFields([
-      "ALAMAT DESA", "Baground Caver", "Desa", "Nama Kepala Desa", "Gambar_cover_RPJMdesa",
+      "ALAMAT DESA", "Baground Caver", "Desa", "Foto_Kades", "Gambar_cover_RPJMdesa",
       "Ganbar_Bagan_kelembagaan", "Ganbar_sketsa_desa", "Jenis_RPJMdes", "Jumlah Dusun (angka)",
-      "Jumlah Dusun (huruf)", "Jumlah Kepala Keluarga (KK)", "Kabupaten", "Kecamatan", "Nama Desa",
-      "LOGO KEMENTRIAN", "Nama Ketua BPD", "Nama Ketua Tim", "Nama RKPDEsa",
+      "Jumlah Dusun (huruf)", "Jumlah Kepala Keluarga (KK)", "Kabupaten", "Kecamatan", "LOGO KAB",
+      "LOGO KEMENTRIAN", "Nama Kepala Desa", "Nama Ketua BPD", "Nama Ketua Tim", "Nama RKPDEsa",
       "Nama Sekretaris Desa", "No Perdes RKPdesa", "No Perdes RPJMDEs yg di cabut", "No sk tim penyusun",
       "No sk tim penyusun RPJMDes", "Peiode RPJMDes Lama yang di cabut (mulai - akhir)", "Perdes RPJMdesa",
       "Periode RPJMDesa Ke", "Provinsi", "STATUS PERDES_RKPDes", "STATUS PERDES_RPJMDes",
@@ -333,7 +333,7 @@ const materialFormTemplates = {
       "Tanggal Penetapan perdes", "Tanggal Pengundangan perdes", "Tanggal Pengundangan perdes RPJMDes",
       "Tanggal Penyusunan", "Tanggal_Penyusunan_RPJMDes", "Tentang_Perdes_RPJMDes",
       "Tgl Penetapan Perdes RPJMDesa", "Visi Desa",
-    ], ["LOGO KEMENTRIAN", "Tentang_Perdes_RPJMDes"], ["Baground Caver", "Gambar_cover_RPJMdesa", "Ganbar_Bagan_kelembagaan", "Ganbar_sketsa_desa"]),
+    ], ["LOGO KEMENTRIAN", "Tentang_Perdes_RPJMDes"], ["Baground Caver", "Foto_Kades", "Gambar_cover_RPJMdesa", "Ganbar_Bagan_kelembagaan", "Ganbar_sketsa_desa", "LOGO KAB"]),
   },
   input_misi_desa: {
     key: "input_misi_desa",
@@ -1030,19 +1030,41 @@ function renderMaterialForm(formKey = "dashboard") {
     lucide.createIcons();
   }
 
-  // Auto-fill LOGO KAB, Foto_Kades, and Masa Bakti RPJMDesa from saved desa data
+  // Auto-fill LOGO KAB and Foto_Kades images from saved desa data
   if (formKey === "input_data_umum" && desaSavedRows.length > 0) {
     const latestDesa = desaSavedRows[0];
     
-    // Fill Nama Desa from desa data
-    const namaDesaField = materialAutoForm?.querySelector('[name="nama_desa"]');
-    if (namaDesaField && latestDesa.desa) namaDesaField.value = latestDesa.desa;
+    // Show Logo Kabupaten image from desa data
+    const logoKabField = materialAutoForm?.querySelector('[name="logo_kab"]');
+    if (logoKabField && latestDesa.logo_kabupaten?.dataUrl) {
+      const label = logoKabField.closest("label");
+      if (label) {
+        logoKabField.style.display = "none";
+        if (!label.querySelector(".desa-file-img")) {
+          const img = document.createElement("img");
+          img.className = "desa-file-img";
+          img.src = latestDesa.logo_kabupaten.dataUrl;
+          img.alt = "Logo Kabupaten";
+          label.append(img);
+        }
+      }
+    }
     
-    // Fill Nama Kepala Desa from desa data (renamed from Foto_Kades)
-    const namaKadesField = materialAutoForm?.querySelector('[name="nama_kepala_desa"]');
-    if (namaKadesField && latestDesa.nama_kepala_desa) namaKadesField.value = latestDesa.nama_kepala_desa;
-    
-
+    // Show Foto Kades image from desa data
+    const fotoKadesField = materialAutoForm?.querySelector('[name="foto_kades"]');
+    if (fotoKadesField && latestDesa.foto_kades?.dataUrl) {
+      const label = fotoKadesField.closest("label");
+      if (label) {
+        fotoKadesField.style.display = "none";
+        if (!label.querySelector(".desa-file-img")) {
+          const img = document.createElement("img");
+          img.className = "desa-file-img";
+          img.src = latestDesa.foto_kades.dataUrl;
+          img.alt = "Foto Kepala Desa";
+          label.append(img);
+        }
+      }
+    }
     
     // Auto-fill other fields from desa data
     const desaField = materialAutoForm?.querySelector('[name="desa"]');
