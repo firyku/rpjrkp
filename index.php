@@ -915,12 +915,12 @@ $isAdminView = $currentView !== 'dashboard';
               <small><i data-lucide="tag"></i> Tracked from Github</small>
             </article>
             <article class="material-stat-card">
-              <div class="material-icon cyan"><i data-lucide="accessibility"></i></div>
+              <div class="material-icon cyan"><i data-lucide="calendar-range"></i></div>
               <div>
-                <span>Operator Aktif</span>
-                <strong>+245</strong>
+                <span>Masa Bakti RPJMDesa</span>
+                <strong><?= htmlspecialchars($activeAdmin['year'] ?? '-', ENT_QUOTES, 'UTF-8') ?></strong>
               </div>
-              <small><i data-lucide="refresh-cw"></i> Just Updated</small>
+              <small><i data-lucide="clock"></i> Periode jabatan</small>
             </article>
           </section>
 

@@ -1035,7 +1035,7 @@ function renderMaterialForm(formKey = "dashboard") {
     const latestDesa = desaSavedRows[0];
     
     // Fill LOGO KAB display
-    const logoKabField = materialAutoForm?.querySelector("[name="logo_kab"]");
+    const logoKabField = materialAutoForm?.querySelector('[name="logo_kab"]');
     if (logoKabField && latestDesa.logo_kabupaten?.dataUrl) {
       const label = logoKabField.closest("label");
       if (label) {
@@ -1055,7 +1055,7 @@ function renderMaterialForm(formKey = "dashboard") {
     }
     
     // Fill Foto Kades display
-    const fotoKadesField = materialAutoForm?.querySelector("[name="foto_kades"]");
+    const fotoKadesField = materialAutoForm?.querySelector('[name="foto_kades"]');
     if (fotoKadesField && latestDesa.foto_kades?.dataUrl) {
       const label = fotoKadesField.closest("label");
       if (label) {
@@ -1074,17 +1074,27 @@ function renderMaterialForm(formKey = "dashboard") {
       }
     }
     
-    // Fill Masa Bakti RPJMDesa (from tahun_anggaran or perdes info)
-    const namaKadesField = materialAutoForm?.querySelector("[name="nama_kepala_desa"]");
-    if (namaKadesField && latestDesa.tahun_anggaran) {
-      const tahun = latestDesa.tahun_anggaran;
-      const label = namaKadesField.closest("label");
-      if (label) {
-        const span = label.querySelector("span");
-        if (span) span.textContent = "Masa Bakti RPJMDesa";
-        namaKadesField.value = tahun + " s/d " + (String(Number(tahun) + 5));
-      }
+    // Fill Nama Kepala Desa from desa data
+    const namaKadesField = materialAutoForm?.querySelector('[name="nama_kepala_desa"]');
+    if (namaKadesField && latestDesa.nama_kepala_desa) {
+      namaKadesField.value = latestDesa.nama_kepala_desa;
     }
+    
+    // Auto-fill other fields from desa data
+    const desaField = materialAutoForm?.querySelector('[name="desa"]');
+    if (desaField && latestDesa.desa) desaField.value = latestDesa.desa;
+    
+    const alamatField = materialAutoForm?.querySelector('[name="alamat_desa"]');
+    if (alamatField && latestDesa.alamat_desa) alamatField.value = latestDesa.alamat_desa;
+    
+    const kabField = materialAutoForm?.querySelector('[name="kabupaten"]');
+    if (kabField && latestDesa.kabupaten) kabField.value = latestDesa.kabupaten;
+    
+    const kecField = materialAutoForm?.querySelector('[name="kecamatan"]');
+    if (kecField && latestDesa.kecamatan) kecField.value = latestDesa.kecamatan;
+    
+    const provField = materialAutoForm?.querySelector('[name="provinsi"]');
+    if (provField && latestDesa.provinsi) provField.value = latestDesa.provinsi;
   }
 
   renderMaterialResultTable();
