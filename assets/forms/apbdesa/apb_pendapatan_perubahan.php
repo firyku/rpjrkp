@@ -1,0 +1,1 @@
+  apb_pendapatan_perubahan: {key:"apb_pendapatan_perubahan",icon:"refresh-cw",title:"Pendapatan Perubahan",description:"Anggaran pendapatan sebelum dan setelah perubahan.",fields:accessFields(["Kode Rekening","Uraian Pendapatan","Anggaran Sebelum","Anggaran Setelah","Bertambah/Berkurang","Persentase","Keterangan"],["Keterangan"])},

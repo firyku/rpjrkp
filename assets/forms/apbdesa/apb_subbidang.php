@@ -1,0 +1,1 @@
+  apb_subbidang: {key:"apb_subbidang",icon:"list-tree",title:"Sub Bidang",description:"Referensi sub bidang berdasarkan bidang APBDesa.",fields:accessFields(["Kode Bidang","Bidang","Kode Sub Bidang","Nama Sub Bidang","Keterangan"],["Keterangan"])},

@@ -1,0 +1,1 @@
+  rkp_ketentuan_umum: {key:"rkp_ketentuan_umum",icon:"book-open-text",title:"Ketentuan Umum Perdes RKPDesa",description:"Uraian istilah dan ketentuan umum pada Perdes.",fields:accessFields(["No","Uraian"],["Uraian"])},

@@ -1,0 +1,1 @@
+  apb_belanja_perubahan: {key:"apb_belanja_perubahan",icon:"refresh-cw",title:"Belanja Perubahan",description:"Rincian belanja sebelum dan setelah perubahan.",fields:accessFields(["Kode Bidang","Bidang","Kegiatan","Kode Rekening","Uraian Belanja","Anggaran Sebelum","Anggaran Setelah","Bertambah/Berkurang","Sumber Dana","Keterangan"],["Keterangan"])},

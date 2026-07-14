@@ -1,0 +1,1 @@
+  perdes: createReportTemplate("perdes", "Perdes"),

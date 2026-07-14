@@ -1,0 +1,1 @@
+  cover: createReportTemplate("cover", "Cover"),

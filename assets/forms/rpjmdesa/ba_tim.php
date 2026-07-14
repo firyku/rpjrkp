@@ -1,0 +1,15 @@
+  ba_tim: {
+    key: "ba_tim",
+    icon: "file-signature",
+    title: "BA Tim",
+    description: "Form mengikuti tabel ba tim.",
+    fields: [
+      { label: "Hari", name: "hari", type: "text", placeholder: "Hari" },
+      { label: "Tanggal (huruf)", name: "tanggal_huruf", type: "text", placeholder: "Tanggal dalam huruf" },
+      { label: "Bulan (huruf)", name: "bulan_huruf", type: "text", placeholder: "Bulan dalam huruf" },
+      { label: "Tahun (huruf)", name: "tahun_huruf", type: "text", placeholder: "Tahun dalam huruf" },
+      { label: "Tempat", name: "tempat", type: "text", placeholder: "Tempat musyawarah" },
+      { label: "Nama Pemimpin Musyawarah", name: "nama_pemimpin_musyawarah", type: "text", placeholder: "Nama pemimpin" },
+      { label: "Nama Notulen Musyawarah", name: "nama_notulen_musyawarah", type: "text", placeholder: "Nama notulen" },
+    ],
+  },

@@ -1,0 +1,1 @@
+  rkp_ba_tim_input: {key:"rkp_ba_tim_input",icon:"file-signature",title:"Input BA Tim",description:"Data berita acara pembentukan tim penyusun RKPDesa.",fields:accessFields(["Nomor Berita Acara","Hari","Tanggal","Bulan","Tahun","Pukul","Tempat","Pimpinan Rapat","Notulen","Agenda","Hasil Kesepakatan","Keterangan"],["Agenda","Hasil Kesepakatan","Keterangan"])},

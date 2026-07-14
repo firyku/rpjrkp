@@ -1,0 +1,1 @@
+  apb_bidang: {key:"apb_bidang",icon:"layout-list",title:"Bidang",description:"Referensi bidang APBDesa.",fields:accessFields(["Kode Bidang","Nama Bidang","Uraian Bidang","Keterangan"],["Uraian Bidang","Keterangan"])},

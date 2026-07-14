@@ -1,0 +1,1 @@
+  apb_satuan: {key:"apb_satuan",icon:"ruler",title:"Satuan",description:"Referensi satuan volume dan harga.",fields:accessFields(["Kode Satuan","Nama Satuan","Jenis Satuan","Keterangan"],["Keterangan"])},

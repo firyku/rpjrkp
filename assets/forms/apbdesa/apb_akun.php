@@ -1,0 +1,1 @@
+  apb_akun: {key:"apb_akun",icon:"binary",title:"Akun/Rekening",description:"Referensi kode dan nama akun APBDesa.",fields:accessFields(["Kode Akun","Nama Akun","Kelompok","Jenis","Objek","Rincian Objek","Keterangan"],["Keterangan"])},

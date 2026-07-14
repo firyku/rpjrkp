@@ -1,0 +1,1 @@
+  apb_pendapatan: {key:"apb_pendapatan",icon:"circle-dollar-sign",title:"Pendapatan",description:"Rincian anggaran pendapatan desa.",fields:accessFields(["Kode Rekening","Kelompok Pendapatan","Jenis Pendapatan","Objek Pendapatan","Rincian Objek","Uraian","Volume","Satuan","Harga Satuan","Anggaran","Sumber Dana","Keterangan"],["Keterangan"])},

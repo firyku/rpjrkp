@@ -1,0 +1,1 @@
+  rkp_daftar_isi: {key:"rkp_daftar_isi",icon:"list-tree",title:"Input Daftar Isi RKPDesa",description:"Input susunan daftar isi dokumen RKPDesa.",fields:accessFields(["Kode","Kode Uraian","Uraian","Isi","Halaman"],["Uraian","Isi"])},

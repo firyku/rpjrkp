@@ -1,0 +1,1 @@
+  apb_paket_kegiatan: {key:"apb_paket_kegiatan",icon:"package-plus",title:"Input Paket Kegiatan",description:"Paket, pelaksana, lokasi, volume, dan sumber dana kegiatan.",fields:accessFields(["Kode Kegiatan","Nama Kegiatan","No Paket","Nama Paket Kegiatan","Pelaksana Kegiatan","Lokasi","Volume","Satuan","Sumber Dana","Pagu Anggaran","Keterangan"],["Keterangan"])},

@@ -1,0 +1,1 @@
+  rkp_dasar_hukum_sk: {key:"rkp_dasar_hukum_sk",icon:"file-check-2",title:"Dasar Hukum SK Tim",description:"Dasar hukum penetapan tim penyusun RKPDesa.",fields:accessFields(["No","Isi Dasar Hukum"],["Isi Dasar Hukum"])},

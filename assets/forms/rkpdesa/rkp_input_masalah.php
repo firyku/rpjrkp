@@ -1,0 +1,1 @@
+  rkp_input_masalah: {key:"rkp_input_masalah",icon:"circle-alert",title:"Input Masalah",description:"Pencermatan masalah dari dokumen RPJMDesa untuk tahun RKPDesa.",fields:accessFields(["No","Bidang","Sub Bidang","Kegiatan RPJMDesa","Lokasi","Masalah","Penyebab","Potensi","Alternatif Tindakan","Keterangan"],["Masalah","Penyebab","Potensi","Alternatif Tindakan","Keterangan"])},

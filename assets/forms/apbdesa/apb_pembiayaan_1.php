@@ -1,0 +1,1 @@
+  apb_pembiayaan_1: {key:"apb_pembiayaan_1",icon:"landmark",title:"Penerimaan Pembiayaan",description:"Rincian penerimaan pembiayaan APBDesa.",fields:accessFields(["Kode Rekening","Kelompok Pembiayaan","Jenis Pembiayaan","Objek Pembiayaan","Rincian Objek","Uraian","Volume","Satuan","Harga Satuan","Jumlah Anggaran","Keterangan"],["Keterangan"])},

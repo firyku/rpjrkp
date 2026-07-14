@@ -1,0 +1,1 @@
+  rkp_dasar_hukum_perdes: {key:"rkp_dasar_hukum_perdes",icon:"scroll-text",title:"Dasar Hukum Perdes RKPDesa",description:"Dasar hukum penyusunan Perdes RKPDesa.",fields:accessFields(["No","Isi Dasar Hukum"],["Isi Dasar Hukum"])},

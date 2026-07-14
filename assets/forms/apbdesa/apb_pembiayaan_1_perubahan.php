@@ -1,0 +1,1 @@
+  apb_pembiayaan_1_perubahan: {key:"apb_pembiayaan_1_perubahan",icon:"refresh-cw",title:"Perubahan Penerimaan Pembiayaan",description:"Penerimaan pembiayaan sebelum dan setelah perubahan.",fields:accessFields(["Kode Rekening","Uraian","Anggaran Sebelum","Anggaran Setelah","Bertambah/Berkurang","Keterangan"],["Keterangan"])},

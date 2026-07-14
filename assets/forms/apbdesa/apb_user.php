@@ -1,0 +1,1 @@
+  apb_user: {key:"apb_user",icon:"users",title:"User",description:"Pengguna dan hak akses aplikasi APBDesa.",fields:[accessField("User ID"),accessField("Nama"),{label:"Status",name:"status",type:"select",options:["Administrator","Operator","Viewer"],value:"Operator"},accessField("Sandi","password"),{label:"Aktif",name:"aktif",type:"select",options:["Ya","Tidak"],value:"Ya"}]},
