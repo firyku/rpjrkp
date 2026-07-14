@@ -1118,6 +1118,16 @@ body.is-resizing-column * { cursor: col-resize !important; user-select: none !im
 .material-chart-card p, .material-chart-card small { margin: 0 16px; color: var(--muted); font-size: 10px; }
 .material-chart-card small { display: flex; align-items: center; gap: 5px; margin-top: 8px; }
 .material-chart-card small svg, .material-chart-card p svg { width: 12px; height: 12px; }
+.identity-card { text-align: center; }
+.identity-visual { overflow: hidden; }
+.identity-visual img { width: 100%; height: 100%; object-fit: contain; }
+.identity-visual > svg { width: 72px; height: 72px; color: rgba(255,255,255,.9); }
+.identity-card h2 { font-size: 16px; }
+.identity-card p { font-size: 11px; }
+.tenure-visual { display: flex; flex-direction: column; gap: 5px; color: #fff; }
+.tenure-visual > svg { width: 42px; height: 42px; }
+.tenure-visual span { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.tenure-visual strong { font-size: clamp(24px, 2.3vw, 38px); line-height: 1.1; }
 
 .material-form-panel, .material-result-panel { margin-top: 14px; overflow: hidden; }
 .material-form-icon { width: 38px; height: 38px; display: grid; place-items: center; flex: 0 0 auto; color: var(--gov-blue); background: var(--gov-blue-soft); border-radius: var(--radius); }

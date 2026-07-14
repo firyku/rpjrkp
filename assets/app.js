@@ -72,6 +72,37 @@ let editingDesaRowId = null;
 let editingMaterialRowId = null;
 let currentMaterialSectionSteps = [];
 
+function updateRpjmIdentityCards() {
+  const data = desaSavedRows[0] || {};
+  const logo = document.querySelector("#rpjmLogoKabupaten");
+  const logoPlaceholder = document.querySelector("#rpjmLogoPlaceholder");
+  const foto = document.querySelector("#rpjmFotoKades");
+  const fotoPlaceholder = document.querySelector("#rpjmFotoPlaceholder");
+  const namaDesa = document.querySelector("#rpjmNamaDesa");
+  const namaKades = document.querySelector("#rpjmNamaKades");
+  const masa = document.querySelector("#rpjmMasaJabatan");
+  const masaCaption = document.querySelector("#rpjmMasaJabatanCaption");
+
+  const syncImage = (image, placeholder, fileData) => {
+    if (!image || !placeholder) return;
+    const source = fileData?.dataUrl || "";
+    image.hidden = !source;
+    placeholder.hidden = Boolean(source);
+    if (source) image.src = source;
+  };
+
+  syncImage(logo, logoPlaceholder, data.logo_kabupaten);
+  syncImage(foto, fotoPlaceholder, data.foto_kades);
+  if (namaDesa) namaDesa.textContent = data.desa || "Nama Desa";
+  if (namaKades) namaKades.textContent = data.nama_kepala_desa || "Nama Kepala Desa";
+
+  const awal = data.tahun_awal_periode_rpjmdesa || activeMaterialModule.year?.split("-")[0] || "-";
+  const akhir = data.tahun_akhir_periode_rpjmdesa || activeMaterialModule.year?.split("-")[1] || "-";
+  const periode = `${awal} s/d ${akhir}`;
+  if (masa) masa.textContent = periode;
+  if (masaCaption) masaCaption.textContent = periode;
+}
+
 if (heroDreaminaVideo) {
   let heroSoundEnabled = false;
 
@@ -1498,6 +1529,7 @@ function loadDesaRows() {
 }
 
 function renderDesaDataTable() {
+  updateRpjmIdentityCards();
   if (!desaDataRows) return;
   desaDataRows.innerHTML = "";
 
