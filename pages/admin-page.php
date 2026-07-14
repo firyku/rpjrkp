@@ -108,6 +108,13 @@
                 <p>Setiap data dari form otomatis masuk ke tabel ini setelah tombol Simpan Data ditekan.</p>
               </div>
               <div class="material-result-actions">
+                <button class="material-excel-button is-import" id="importExcelBtn" type="button">
+                  <i data-lucide="file-up"></i>Impor Excel
+                </button>
+                <button class="material-excel-button is-export" id="exportExcelBtn" type="button">
+                  <i data-lucide="file-down"></i>Ekspor Excel
+                </button>
+                <input id="importExcelFile" type="file" accept=".xlsx,.xls,.xlsm,.xlsb" hidden>
                 <button class="material-add-table-row" id="addMaterialTableRow" type="button">
                   <i data-lucide="plus"></i>Tambah Baris
                 </button>
@@ -134,6 +141,22 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </section>
+          <section class="access-import-panel" id="accessImportPanel" hidden>
+            <div class="access-import-icon"><i data-lucide="database-zap"></i></div>
+            <div class="access-import-copy">
+              <span>IMPORT DATA MICROSOFT ACCESS</span>
+              <h2>Export / Migrasi Data Access</h2>
+              <p>Unggah database Microsoft Access asli. Data RPJMDesa dan RKPDesa akan dibaca dan dipetakan otomatis dari nama tabel dan kolom.</p>
+              <label class="access-import-drop">
+                <i data-lucide="database"></i>
+                <strong>Pilih database Microsoft Access</strong>
+                <small>Format: ACCDB atau MDB (maksimal 300 MB)</small>
+                <input id="accessWorkbookFile" type="file" accept=".accdb,.mdb,application/x-msaccess" hidden>
+              </label>
+              <button id="importAccessWorkbook" class="access-import-submit" type="button" disabled><i data-lucide="upload-cloud"></i>Isi Otomatis Semua Form</button>
+              <div id="accessImportStatus" class="access-import-status" aria-live="polite"></div>
             </div>
           </section>
         </div>

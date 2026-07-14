@@ -1,5 +1,6 @@
           <nav class="material-menu" aria-label="Sub menu <?= htmlspecialchars($activeAdmin['title'], ENT_QUOTES, 'UTF-8') ?>">
             <a class="material-menu-root" href="?view=dashboard&v=<?= htmlspecialchars($cacheVersion, ENT_QUOTES, 'UTF-8') ?>#overview"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+            <a class="material-menu-root" href="#accessImportPanel" data-access-import><i data-lucide="database-zap"></i><span>Export</span></a>
             <details class="material-menu-group">
               <summary><i data-lucide="database"></i><span>Input Data</span></summary>
               <div class="material-submenu">

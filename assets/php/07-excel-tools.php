@@ -4,6 +4,10 @@ const importExcelBtn = document.querySelector("#importExcelBtn");
 const importExcelFile = document.querySelector("#importExcelFile");
 
 exportExcelBtn?.addEventListener("click", () => {
+  if (!window.XLSX) {
+    alert("Fitur Excel belum siap. Periksa koneksi internet lalu muat ulang halaman.");
+    return;
+  }
   const template = materialFormTemplates[currentMaterialFormKey] || materialFormTemplates.dashboard;
   const filteredRows = materialSavedRows.filter(row => row.formKey === currentMaterialFormKey || row.form === template.title);
   if (filteredRows.length === 0) {
@@ -33,6 +37,11 @@ importExcelBtn?.addEventListener("click", () => {
 importExcelFile?.addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (!file) return;
+  if (!window.XLSX) {
+    alert("Fitur Excel belum siap. Periksa koneksi internet lalu muat ulang halaman.");
+    importExcelFile.value = "";
+    return;
+  }
 
   const reader = new FileReader();
   reader.onload = (evt) => {
@@ -68,9 +77,12 @@ importExcelFile?.addEventListener("change", (e) => {
           module: activeMaterialModule.title,
           form: template.title,
           formKey: currentMaterialFormKey,
-          summary: summarizeMaterialValues(values),
           status: "Berhasil di input",
           createdAt,
+          valueMap: values.reduce((map, value) => {
+            map[value.name] = value.value;
+            return map;
+          }, {}),
           values
         });
       });

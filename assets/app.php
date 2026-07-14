@@ -9,3 +9,4 @@ require __DIR__ . '/php/04-material-storage.php';
 require __DIR__ . '/php/05-village-data.php';
 require __DIR__ . '/php/06-dashboard-runtime.php';
 require __DIR__ . '/php/07-excel-tools.php';
+require __DIR__ . '/php/08-access-import.php';

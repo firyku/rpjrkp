@@ -119,6 +119,7 @@ async function addMaterialResultRow() {
 }
 
 function getMaterialManualCellValue(control) {
+  if (control && "value" in control) return String(control.value || "").trim();
   return String(control?.textContent || "").replace(/\s+/g, " ").trim();
 }
 
@@ -153,7 +154,8 @@ function focusSiblingMaterialCell(control, direction) {
 
 function clearMaterialManualCells() {
   materialResultRows?.querySelectorAll(".material-manual-row:last-child .material-sheet-cell").forEach((cell) => {
-    cell.textContent = "";
+    if ("value" in cell) cell.value = "";
+    else cell.textContent = "";
   });
   editingMaterialRowId = null;
 }
@@ -164,7 +166,11 @@ function fillMaterialManualCells(row, template) {
   const targetRow = materialResultRows?.querySelector(".material-manual-row") || renderMaterialManualInputRow(template, getMaterialVisibleFields(template));
   getMaterialVisibleFields(template).forEach((field) => {
     const cell = targetRow?.querySelector(`[data-manual-field="${field.name}"]`);
-    if (cell) cell.textContent = getMaterialRowValue(row, field) === "-" ? "" : getMaterialRowValue(row, field);
+    if (cell) {
+      const value = getMaterialRowValue(row, field) === "-" ? "" : getMaterialRowValue(row, field);
+      if ("value" in cell) cell.value = value;
+      else cell.textContent = value;
+    }
   });
   ensureTrailingBlankMaterialRow();
 }

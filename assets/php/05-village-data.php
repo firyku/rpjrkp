@@ -233,7 +233,8 @@ materialMenuLinks.forEach((link) => {
     event.preventDefault();
     materialMenuLinks.forEach((item) => item.classList.toggle("active", item === link));
     renderMaterialForm(link.dataset.materialForm);
-    document.querySelector("#materialAutoForm")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    const target = materialFormPanel?.hidden ? document.querySelector(".material-result-panel") : materialFormPanel;
+    target?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
 });
 

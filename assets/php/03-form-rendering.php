@@ -141,6 +141,8 @@ function renderMaterialForm(formKey = "dashboard") {
   if (!materialAutoForm || !template) return;
   currentMaterialFormKey = template.key;
   editingMaterialRowId = null;
+  const accessPanel = document.querySelector("#accessImportPanel");
+  if (accessPanel) accessPanel.hidden = true;
 
   const title = `${template.title} ${activeMaterialModule.title}`;
   materialFormKicker && (materialFormKicker.textContent = activeMaterialModule.title);
@@ -153,8 +155,10 @@ function renderMaterialForm(formKey = "dashboard") {
 
   materialAutoForm.innerHTML = "";
   const isProfileVillageForm = ["input_profil_desa", "rkp_profil_desa"].includes(template.key);
-  const isSectionedMaterialForm = template.key !== "dashboard" && !accessDatasheetKeys.has(template.key);
-  const isAccessDatasheet = accessDatasheetKeys.has(template.key);
+  // Profil Desa selalu memakai form bertahap per Bagian. Form tabel lainnya
+  // cukup diinput melalui datasheet bawah agar tidak tampil dua kali.
+  const isAccessDatasheet = accessDatasheetKeys.has(template.key) && !isProfileVillageForm;
+  const isSectionedMaterialForm = isProfileVillageForm || (template.key !== "dashboard" && !isAccessDatasheet);
   if (addMaterialTableRowButton) addMaterialTableRowButton.hidden = !isAccessDatasheet;
   if (clearMaterialTableButton) clearMaterialTableButton.hidden = !isAccessDatasheet;
   currentMaterialSectionSteps = isSectionedMaterialForm ? createMaterialSectionSteps(template) : [];
@@ -164,9 +168,8 @@ function renderMaterialForm(formKey = "dashboard") {
 
   // Tampilkan panel hasil untuk form tabel (access datasheet)
   const materialResultPanel = document.querySelector(".material-result-panel");
-  if (materialResultPanel) {
-    materialResultPanel.hidden = false;
-  }
+  if (materialResultPanel) materialResultPanel.hidden = false;
+  if (materialFormPanel) materialFormPanel.hidden = isAccessDatasheet;
   materialFormPanel?.classList.toggle("is-profile-village-mode", isSectionedMaterialForm);
   adminView?.classList.toggle("is-profile-village-view", isSectionedMaterialForm);
 
@@ -174,13 +177,9 @@ function renderMaterialForm(formKey = "dashboard") {
     materialAutoForm.append(createMaterialSectionNavigation(template, isProfileVillageForm));
   }
 
-  const fieldsTarget = isAccessDatasheet ? document.createElement("div") : materialAutoForm;
-  if (isAccessDatasheet) {
-    fieldsTarget.className = "access-datasheet-fields span-2";
-    materialAutoForm.append(fieldsTarget);
-  }
+  const fieldsTarget = materialAutoForm;
 
-  template.fields.forEach((field) => {
+  if (!isAccessDatasheet) template.fields.forEach((field) => {
     const fieldControl = createMaterialField(field);
     if (isSectionedMaterialForm) {
       fieldControl.classList.add("profile-village-field");
@@ -189,13 +188,15 @@ function renderMaterialForm(formKey = "dashboard") {
     fieldsTarget.append(fieldControl);
   });
 
-  const actions = document.createElement("div");
-  actions.className = "material-form-actions span-2";
-  actions.innerHTML = `
-    <button type="submit"><i data-lucide="save"></i>Simpan Data</button>
-    <button type="reset"><i data-lucide="rotate-ccw"></i>Reset</button>
-  `;
-  materialAutoForm.append(actions);
+  if (!isAccessDatasheet) {
+    const actions = document.createElement("div");
+    actions.className = "material-form-actions span-2";
+    actions.innerHTML = `
+      <button type="submit"><i data-lucide="save"></i>Simpan Data</button>
+      <button type="reset"><i data-lucide="rotate-ccw"></i>Reset</button>
+    `;
+    materialAutoForm.append(actions);
+  }
 
   if (isSectionedMaterialForm) {
     activateMaterialSectionStep(0);
@@ -401,18 +402,28 @@ function applyMaterialColumnWidth(table, columnIndex, width) {
 }
 
 function createMaterialManualControl(field) {
-  const control = document.createElement("div");
+  const control = document.createElement(field.type === "select" ? "select" : "div");
   control.className = "material-sheet-cell";
-  control.contentEditable = "true";
-  control.role = "textbox";
   control.dataset.manualField = field.name;
   control.dataset.placeholder = field.placeholder || field.label;
   control.dataset.fieldType = field.type || "text";
   control.setAttribute("aria-label", field.label);
-  control.setAttribute("tabindex", "0");
 
   if (field.type === "select") {
-    control.dataset.options = (field.options || []).join("|");
+    const placeholderOption = document.createElement("option");
+    placeholderOption.value = "";
+    placeholderOption.textContent = `Pilih ${field.label}`;
+    control.append(placeholderOption);
+    (field.options || []).forEach((optionLabel) => {
+      const option = document.createElement("option");
+      option.value = optionLabel;
+      option.textContent = optionLabel;
+      control.append(option);
+    });
+  } else {
+    control.contentEditable = "true";
+    control.role = "textbox";
+    control.setAttribute("tabindex", "0");
   }
 
   return control;

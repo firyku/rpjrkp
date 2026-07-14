@@ -79,7 +79,7 @@ if (($_GET['action'] ?? '') === 'logout') {
     exit;
 }
 
-$cacheVersion = 'apdi-27';
+$cacheVersion = 'apdi-28';
 $adminPages = [
     'rpjmdesa' => [
         'title' => 'RPJMDesa',
