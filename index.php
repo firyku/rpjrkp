@@ -35,7 +35,7 @@
           </a>
           <div class="template-account" aria-label="Akun pengguna">
             <i data-lucide="user-round"></i>
-            <span>Koperasi Desa Merah Putih Gendayakan Kecamatan Paranggupito Kabupaten Wonogiri</span>
+            <span>Desa Gendayakan, Kecamatan Paranggupito, Kabupaten Wonogiri</span>
             <i data-lucide="chevron-down"></i>
           </div>
           <?php elseif ($currentView === 'rkpdesa'): ?>

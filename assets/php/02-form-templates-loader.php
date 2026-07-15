@@ -24,6 +24,7 @@ require __DIR__ . '/../forms/rpjmdesa/arah_kebijakan.php';
 require __DIR__ . '/../forms/rpjmdesa/program_masuk_desa.php';
 require __DIR__ . '/../forms/rpjmdesa/input_rekomendasi_sdgs.php';
 require __DIR__ . '/../forms/rpjmdesa/input_prioritas.php';
+require __DIR__ . '/../forms/rpjmdesa/dtsen.php';
 require __DIR__ . '/../forms/rpjmdesa/inventaris_masalah.php';
 require __DIR__ . '/../forms/rpjmdesa/inventaris_potensi.php';
 require __DIR__ . '/../forms/rpjmdesa/gagasan_dusun.php';

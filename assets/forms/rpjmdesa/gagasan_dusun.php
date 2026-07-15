@@ -3,5 +3,5 @@
     icon: "lightbulb",
     title: "Daftar Gagasan Dusun/Kelompok",
     description: "Form gagasan dusun/kelompok untuk rekapitulasi usulan RPJMDesa.",
-    fields: accessFields(["LK", "Lokasi Kegiatan", "No", "NO SDGS", "Pengusul", "PR", "Prakiraan Volume & Satuan", "RTM", "SDGs Ke-", "Usulan Kegiatan"]),
+    fields: accessFields(["NO SDGS", "SDGs Ke-", "No", "Usulan Kegiatan", "Pengusul", "Lokasi Kegiatan", "Prakiraan Volume & Satuan", "LK", "PR", "RTM"]),
   },

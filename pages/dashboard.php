@@ -76,7 +76,7 @@
           <form class="desa-data-form" id="desaDataForm" autocomplete="off">
             <label>
               <span>Desa</span>
-              <input type="text" name="desa" value="Gudangharjo" required>
+              <input type="text" name="desa" value="Gendayakan" required>
             </label>
             <label>
               <span>Kecamatan</span>
@@ -103,12 +103,12 @@
               <div class="repeat-input-list" id="visiDesaList">
                 <div class="repeat-input-row">
                   <b>1</b>
-                  <input type="text" name="visi_desa_item[]" value="Gudangharjo Mandiri, berkelanjutan" required>
+                  <input type="text" name="visi_desa_item[]" value="Gendayakan Mandiri, berkelanjutan" required>
                   <button class="repeat-remove" type="button" data-remove-visi aria-label="Hapus visi desa"><i data-lucide="trash-2"></i></button>
                 </div>
               </div>
               <button class="repeat-add" id="addVisiDesaItem" type="button"><i data-lucide="plus"></i>Tambah Visi Desa</button>
-              <input type="hidden" name="visi_desa" value="Gudangharjo Mandiri, berkelanjutan">
+              <input type="hidden" name="visi_desa" value="Gendayakan Mandiri, berkelanjutan">
             </div>
             <label class="span-2">
               <span>Misi Desa</span>
@@ -222,7 +222,7 @@
             </div>
             <label class="span-2">
               <span>Profil Desa</span>
-              <textarea name="profil_desa" rows="4">Desa Gudangharjo memiliki karakter wilayah pertanian dan perkebunan dengan komoditas utama padi, jagung, kacang, dan ubi-ubian.</textarea>
+              <textarea name="profil_desa" rows="4">Desa Gendayakan memiliki karakter wilayah pertanian dan perkebunan dengan komoditas utama padi, jagung, kacang, dan ubi-ubian.</textarea>
             </label>
             <label>
               <span>Logo Kementrian</span>

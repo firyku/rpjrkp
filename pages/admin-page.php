@@ -104,8 +104,8 @@
             <div class="material-result-header">
               <div>
                 <span>Data Tersimpan</span>
-                <h2>Tabel yang berhasil di input</h2>
-                <p>Setiap data dari form otomatis masuk ke tabel ini setelah tombol Simpan Data ditekan.</p>
+                <h2 id="materialResultTitle">Input Data Dashboard</h2>
+                <p id="materialResultDescription">Masukkan data Dashboard pada tabel di bawah, lalu tekan tombol Simpan.</p>
               </div>
               <div class="material-result-actions">
                 <button class="material-excel-button is-import" id="importExcelBtn" type="button">
@@ -158,6 +158,13 @@
               <button id="importAccessWorkbook" class="access-import-submit" type="button" disabled><i data-lucide="upload-cloud"></i>Isi Otomatis Semua Form</button>
               <div id="accessImportStatus" class="access-import-status" aria-live="polite"></div>
             </div>
+          </section>
+          <section class="material-print-panel" id="materialPrintPanel" hidden>
+            <div class="material-print-toolbar">
+              <div><span>PREVIEW LAPORAN</span><h2 id="printReportTitle">Laporan</h2></div>
+              <button id="printReportButton" type="button"><i data-lucide="printer"></i>Cetak / Simpan PDF</button>
+            </div>
+            <article class="print-document" id="printDocument"></article>
           </section>
         </div>
       </section>

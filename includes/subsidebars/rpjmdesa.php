@@ -33,6 +33,7 @@
               <div class="material-submenu">
                 <a href="#materialAutoForm" data-material-form="input_rekomendasi_sdgs">Input Rekomendasi SDGs</a>
                 <a href="#materialAutoForm" data-material-form="input_prioritas">Input Penentuan/Prioritas</a>
+                <a href="#materialAutoForm" data-material-form="dtsen">DTSen Desil 1–4</a>
                 <a href="#materialAutoForm" data-material-form="inventaris_masalah">Inventaris Masalah</a>
                 <a href="#materialAutoForm" data-material-form="inventaris_potensi">Inventaris Potensi</a>
                 <a href="#materialAutoForm" data-material-form="gagasan_dusun">Gagasan Dusun/Kelompok</a>
@@ -58,8 +59,10 @@
             <details class="material-menu-group">
               <summary><i data-lucide="files"></i><span>Laporan</span></summary>
               <div class="material-submenu">
+                <span class="material-report-group">Laporan Cover</span>
                 <a href="#materialAutoForm" data-material-form="cover">Cover</a>
                 <a href="#materialAutoForm" data-material-form="cover_lampiran">Cover Lampiran</a>
+                <span class="material-report-group">Laporan Dokumen</span>
                 <a href="#materialAutoForm" data-material-form="dokumen_1">Dokumen 1</a>
                 <a href="#materialAutoForm" data-material-form="dokumen_2">Dokumen 2</a>
                 <a href="#materialAutoForm" data-material-form="perdes">Perdes</a>
@@ -70,9 +73,9 @@
                 <a href="#materialAutoForm" data-material-form="laporan_program_masuk_desa">Program Masuk Desa</a>
                 <a href="#materialAutoForm" data-material-form="ba_musdus_kelompok">BA Musdus/Kelompok</a>
                 <a href="#materialAutoForm" data-material-form="bagan_kelembagaan">Bagan Kelembagaan</a>
-                <a href="#materialAutoForm" data-material-form="rancangan_rpjmdesa">Rancangan RPJMDesa</a>
-                <a href="#materialAutoForm" data-material-form="dok_visi_misi_kades">Dok. Visi Misi Kades</a>
-                <a href="#materialAutoForm" data-material-form="dok_pokok_pikiran_bpd">Dok. Pokok Pikiran BPD</a>
+                <a href="#materialAutoForm" data-material-form="sketsa_desa_laporan">Sketsa Desa</a>
+                <a href="#materialAutoForm" data-material-form="kalender_musim_laporan">Kalender Musim</a>
+                <span class="material-report-group">Lampiran</span>
                 <a href="#materialAutoForm" data-material-form="inventaris_masalah">Daftar Inventaris Masalah</a>
                 <a href="#materialAutoForm" data-material-form="inventaris_potensi">Daftar Inventaris Potensi</a>
                 <a href="#materialAutoForm" data-material-form="pengkajian_tindakan">Pengkajian Tindakan Pemecahan Masalah</a>
@@ -80,8 +83,9 @@
                 <a href="#materialAutoForm" data-material-form="input_prioritas">Penentuan Peringkat Tindakan</a>
                 <a href="#materialAutoForm" data-material-form="gagasan_dusun">Daftar Gagasan Dusun/Kelompok</a>
                 <a href="#materialAutoForm" data-material-form="rekap_gagasan_dusun">Rekapitulasi Gagasan Dusun/Kelompok</a>
-                <a href="#materialAutoForm" data-material-form="sketsa_desa_laporan">Sketsa Desa</a>
-                <a href="#materialAutoForm" data-material-form="kalender_musim_laporan">Kalender Musim</a>
+                <a href="#materialAutoForm" data-material-form="rancangan_rpjmdesa">Rancangan RPJMDesa</a>
+                <a href="#materialAutoForm" data-material-form="dok_visi_misi_kades">Dok. Visi Misi Kades</a>
+                <a href="#materialAutoForm" data-material-form="dok_pokok_pikiran_bpd">Dok. Pokok Pikiran BPD</a>
                 <a href="#materialAutoForm" data-material-form="ba_musrenbangdes">BA Musrenbangdes</a>
                 <a href="#materialAutoForm" data-material-form="ba_penetapan">BA Pembahasan/Penetapan</a>
               </div>

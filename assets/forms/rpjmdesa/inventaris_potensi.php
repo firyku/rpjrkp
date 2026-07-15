@@ -3,5 +3,5 @@
     icon: "leaf",
     title: "Daftar Inventaris Potensi",
     description: "Form inventaris potensi desa untuk penyusunan RPJMDesa.",
-    fields: accessFields(["Kategori Potensi", "No", "Penjelasan / Contoh"], ["Penjelasan / Contoh"]),
+    fields: accessFields(["No", "Kategori Potensi", "Penjelasan / Contoh"], ["Penjelasan / Contoh"]),
   },

@@ -3,5 +3,5 @@
     icon: "list-tree",
     title: "Input Daftar Isi",
     description: "Form mengikuti tabel Access daftar isi RPJMDesa.",
-    fields: accessFields(["Halaman", "ISI", "Kode", "Kode uraian", "Uraian"]),
+    fields: accessFields(["Kode", "Kode uraian", "Uraian", "ISI", "Halaman"], ["Uraian", "ISI"]),
   },

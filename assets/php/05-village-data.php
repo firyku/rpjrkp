@@ -1,6 +1,13 @@
 function loadDesaRows() {
   try {
     desaSavedRows = JSON.parse(window.localStorage.getItem(desaDataStorageKey) || "[]");
+    let identityUpdated = false;
+    desaSavedRows = desaSavedRows.map((row) => {
+      if (String(row.desa || "").toLowerCase() !== "gudangharjo") return row;
+      identityUpdated = true;
+      return {...row, desa:"Gendayakan", kecamatan:"Paranggupito", kabupaten:"Wonogiri"};
+    });
+    if (identityUpdated) window.localStorage.setItem(desaDataStorageKey, JSON.stringify(desaSavedRows));
   } catch (error) {
     desaSavedRows = [];
   }
@@ -232,11 +239,18 @@ materialMenuLinks.forEach((link) => {
   link.addEventListener("click", (event) => {
     event.preventDefault();
     materialMenuLinks.forEach((item) => item.classList.toggle("active", item === link));
+    const groupTitle = link.closest("details")?.querySelector("summary span")?.textContent.trim();
+    if (groupTitle === "Laporan") {
+      renderMaterialReport(link.dataset.materialForm, link.textContent.trim());
+      return;
+    }
     renderMaterialForm(link.dataset.materialForm);
     const target = materialFormPanel?.hidden ? document.querySelector(".material-result-panel") : materialFormPanel;
     target?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
 });
+
+document.querySelector("#printReportButton")?.addEventListener("click", () => window.print());
 
 materialAutoForm?.addEventListener("submit", async (event) => {
   event.preventDefault();

@@ -692,6 +692,105 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .access-import-submit { display: inline-flex; align-items: center; gap: 7px; margin-top: 14px; padding: 10px 15px; color: #fff; background: #16803b; border: 0; border-radius: 8px; font-weight: 700; cursor: pointer; }
 .access-import-submit:disabled { opacity: .5; cursor: not-allowed; }
 .access-import-status { margin-top: 10px; color: #344054; font-size: 12px; font-weight: 650; }
+.material-print-panel { padding: 20px; background: #eef2f6; border: 1px solid var(--line); border-radius: var(--radius); }
+.material-print-panel[hidden] { display: none; }
+.material-report-group { display: block; margin: 10px 10px 4px; color: #667085; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.material-print-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.material-print-toolbar span { color: var(--gov-blue); font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+.material-print-toolbar h2 { margin: 3px 0 0; }
+.material-print-toolbar button { display: inline-flex; align-items: center; gap: 7px; padding: 10px 14px; color: #fff; background: var(--gov-blue); border: 0; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.print-document { width: min(100%, 794px); min-height: 1123px; margin: 0 auto; padding: 50px 40px; color: #111; background: #fff; box-shadow: 0 10px 30px rgba(16,24,40,.12); font-family: Georgia, "Times New Roman", Times, serif; }
+.print-access-heading { margin: 0 0 36px; text-align: center; }
+.print-access-heading h2 { margin: 0; font-size: 17px; font-weight: 700; }
+.print-village-identity { display: grid; grid-template-columns: 110px 1fr; width: 420px; margin: 0 0 24px; font-size: 16px; line-height: 1.35; }
+.print-village-identity dt,.print-village-identity dd { margin: 0; }
+.print-table-wrap { overflow-x: auto; }
+.print-document table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11px; }
+.print-document th,.print-document td { padding: 6px; vertical-align: top; border: 1px solid #222; }
+.print-document th { background: #fff; text-align: left; }
+.print-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 100px; margin-top: 18px; text-align: center; font-size: 16px; line-height: 1.45; }
+.official-page { box-sizing: border-box; width: 100%; height: 1020px; min-height: 1020px; padding: 8px 34px 35px; overflow: hidden; font-size: 13px; line-height: 1.24; text-align: justify; page-break-after: always; break-after: page; }
+.official-page:last-child { page-break-after: auto; break-after: auto; }
+.official-page p { margin: 0 0 13px; text-indent: 38px; }
+.official-title,.official-law-head { text-align: center; }
+.official-title { margin: 0 0 25px; font-size: 17px; }
+.official-law-head { margin-bottom: 28px; font-weight: 700; line-height: 1.45; }
+.official-cover { display: flex; min-height: 980px; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.official-cover h1 { margin: 22px 0 5px; font-size: 32px; line-height: 1.2; }
+.official-cover h2 { font-size: 22px; line-height: 1.35; }
+.official-cover h3 { margin-top: 24px; font-size: 20px; }
+.official-cover p { text-indent: 0; }
+.official-cover-rule { width: 78%; border-top: 5px double #111; }
+.official-cover-emblem { display: grid; width: 130px; height: 150px; margin: 25px 0; place-items: center; border: 4px solid #111; border-radius: 45% 45% 50% 50%; font-size: 72px; font-weight: 700; }
+.official-toc { padding-left: 28px; line-height: 1.8; }
+.official-toc li { border-bottom: 1px dotted #777; }
+.official-signature { width: 45%; margin: 34px 0 0 auto; text-align: center; }
+.signature-space { height: 65px; }
+.official-consider { display: grid; grid-template-columns: 90px 1fr; gap: 0 12px; }
+.official-consider p { grid-column: 2; }
+.official-source-page { font-size: 14px; line-height: 1.36; }
+.official-source-page h3 { margin: 18px 0 12px; text-align: center; font-size: 15px; line-height: 1.25; }
+.official-source-page h3:first-child { margin-top: 0; }
+.official-source-page p { margin: 0 0 10px; text-align: justify; text-indent: 38px; hyphens: auto; }
+.official-list-item { display: grid; grid-template-columns: 34px minmax(0,1fr); gap: 7px; margin: 0 0 9px !important; padding: 0 16px 0 22px; text-align: justify; text-indent: 0 !important; }
+.official-list-item > span:first-child { text-align: right; }
+.official-list-item > span:last-child { min-width: 0; }
+.official-toc-page h2 { margin: 0 0 24px; text-align: center; font-size: 17px; }
+.official-toc-row { display: grid; grid-template-columns: 42px auto 1fr 30px; gap: 6px; align-items: end; margin: 0 0 9px; font-size: 13px; }
+.official-toc-row > i { min-width: 30px; border-bottom: 1px dotted #333; }
+.official-toc-row > b { text-align: right; font-weight: 400; }
+.official-toc-row:has(> span:nth-child(2)) > span:nth-child(2) { text-align: left; }
+.official-appendix-list { margin: 0; padding-left: 30px; font-size: 13px; line-height: 1.45; }
+.official-appendix-list li { margin-bottom: 5px; padding-left: 5px; }
+.official-doc2-heading { margin: -8px 0 22px; padding: 18px 12px; color: #fff; background: linear-gradient(135deg,#143f78,#1d6f91); text-align: center; }
+.official-doc2-heading strong { display: block; font-family: Arial,sans-serif; font-size: 25px; }
+.official-doc2-heading span { display: block; margin-top: 5px; font-size: 12px; letter-spacing: .04em; }
+.official-page-number { margin-top: 20px; text-align: center; font-size: 12px; }
+.official-native-table-wrap { margin: 14px 0 20px; overflow: hidden; }
+.print-document .official-native-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-family: Georgia,"Times New Roman",serif; font-size: 10px; line-height: 1.2; }
+.print-document .official-native-table th,.print-document .official-native-table td { padding: 4px 3px; overflow-wrap: anywhere; vertical-align: middle; border: 1px solid #555; text-align: center; }
+.print-document .official-native-table th { background: #fff; font-weight: 700; }
+.visual-report-page { min-height: 0; padding: 0; }
+.visual-report-canvas { position: relative; width: 100%; line-height: 1; container-type: inline-size; }
+.visual-report-canvas img { display: block; width: 100%; height: auto; }
+.visual-report-overlay { position: absolute; z-index: 2; display: flex; align-items: center; padding: 0 1px; overflow: hidden; color: #222; background: #fff; font-family: Georgia,"Times New Roman",serif; font-size: clamp(7px,1.65cqi,15px); line-height: 1; white-space: nowrap; }
+.official-pengantar-banner { height: 375px; margin: -38px -32px 18px; background: url("report-assets/pengantar-header.png") center top/cover no-repeat; }
+.official-pengantar-banner span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.official-garuda { width: 120px; height: 108px; margin: -10px auto 4px; overflow: hidden; text-indent: -9999px; background: url("report-assets/garuda.png") center/contain no-repeat; }
+.official-cover-image,.official-lamp-cover-image { position: relative; min-height: 1020px; margin: -58px -52px; padding: 0; background-position: center; background-size: 100% 100%; background-repeat: no-repeat; }
+.official-cover-image { background-image: url("report-assets/cover-rpjmdesa.png"); }
+.official-lamp-cover-image { background-image: url("report-assets/cover-lampiran.png"); }
+.cover-overlay { position: absolute; z-index: 2; box-sizing: border-box; background: #fff; font-family: Arial,sans-serif; }
+.cover-agency { top: 42px; right: 22px; width: 230px; min-height: 87px; padding: 10px 4px 8px 58px; font-size: 13px; font-weight: 700; line-height: 1.18; }
+.cover-period { top: 394px; left: 95px; width: 610px; min-height: 55px; padding: 8px 4px; color: #94b84a; text-align: center; font-size: 31px; }
+.cover-identity { top: 445px; left: 180px; display: grid; grid-template-columns: 170px 20px 1fr; width: 480px; min-height: 130px; padding: 12px; border: 1px solid #222; font-size: 25px; line-height: 1.35; }
+.cover-address { left: 245px; bottom: 70px; width: 350px; min-height: 38px; padding: 5px; color: #fff; background: rgba(73,61,40,.96); text-align: center; font-size: 22px; font-weight: 700; }
+.lamp-agency { top: 42px; right: 22px; width: 230px; min-height: 87px; padding: 10px 4px 8px 58px; font-size: 13px; font-weight: 700; line-height: 1.18; }
+.lamp-title { top: 568px; left: 135px; width: 360px; min-height: 75px; padding: 14px; color: #c28b37; font-size: 43px; font-weight: 800; }
+.official-ba-tim-page.official-page-1 h3:first-of-type { padding-bottom: 12px; border-bottom: 4px solid #111; }
+.official-sk-tim-page.official-page-4 { padding-left: 85px; }
+.official-sk-tim-page.official-page-4 .official-page-number { display: none; }
+@media print {
+  html,body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  body * { visibility: hidden !important; }
+  #materialPrintPanel, #materialPrintPanel * { visibility: visible !important; }
+  #materialPrintPanel { position: absolute; inset: 0; padding: 0; background: #fff; border: 0; }
+  .material-print-toolbar { display: none !important; }
+  .print-document { box-sizing: border-box; width: 215.9mm; max-width: 215.9mm; min-height: 0; margin: 0; padding: 0; overflow: hidden; box-shadow: none; }
+  .print-table-wrap { overflow: visible; }
+  .official-page { box-sizing: border-box; width: 215.9mm; max-width: 215.9mm; height: 279.4mm; min-height: 279.4mm; padding: 9mm 12mm 7mm; overflow: hidden; font-size: 11pt; line-height: 1.22; }
+  .official-source-page h3 { margin: 4mm 0 3mm; font-size: 12pt; }
+  .official-source-page p { margin-bottom: 1.7mm; text-indent: 10mm; }
+  .official-dokumen-1-page { font-size: 12pt; line-height: 1.28; }
+  .official-list-item { grid-template-columns: 9mm minmax(0,1fr); gap: 2mm; margin-bottom: 2mm !important; padding: 0 5mm 0 3mm; }
+  .official-toc-row { margin-bottom: 2.4mm; font-size: 10.5pt; }
+  .official-appendix-list { font-size: 10pt; line-height: 1.35; }
+  .official-native-table-wrap { max-width: 100%; overflow: hidden; break-inside: avoid; }
+  .print-document .official-native-table { width: 100%; max-width: 100%; font-size: 8pt; }
+  .print-document .official-native-table th,.print-document .official-native-table td { padding: .8mm .6mm; }
+  .visual-report-page { min-height: 0; padding: 0; }
+  @page { size: Letter portrait; margin: 0; }
+}
 .span-2 { grid-column: 1 / -1; }
 .desa-field-group { padding: 15px; background: var(--surface-subtle); border: 1px solid var(--line); border-radius: var(--radius-sm); }
 .boundary-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; }

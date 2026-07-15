@@ -3,5 +3,5 @@
     icon: "file-check-2",
     title: "Input Dasar Hukum SK",
     description: "Form mengikuti tabel dasar hukum sk rpjmdeS.",
-    fields: accessFields(["isi dasar hukum", "no"], ["isi dasar hukum"]),
+    fields: accessFields(["no", "isi dasar hukum"], ["isi dasar hukum"]),
   },

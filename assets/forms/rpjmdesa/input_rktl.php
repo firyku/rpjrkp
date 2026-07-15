@@ -3,5 +3,5 @@
     icon: "calendar-clock",
     title: "Input RKTL",
     description: "Form mengikuti tabel rktl RPJMdesa.",
-    fields: accessFields(["BULAN", "HARI", "Jenis", "NO", "PUKUL", "TAHUN", "TANGGAL", "TEMPAT", "URAIAN"]),
+    fields: accessFields(["NO", "HARI", "TANGGAL", "BULAN", "TAHUN", "PUKUL", "TEMPAT", "URAIAN", "Jenis"], ["URAIAN"]),
   },

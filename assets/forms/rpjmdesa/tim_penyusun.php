@@ -3,5 +3,5 @@
     icon: "users-round",
     title: "Susunan Tim Penyusun",
     description: "Form mengikuti tabel tim RPJMDes.",
-    fields: accessFields(["Jabatan", "Kedudukan", "Nama", "No"]),
+    fields: accessFields(["No", "Nama", "Jabatan", "Kedudukan"]),
   },

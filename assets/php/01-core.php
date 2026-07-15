@@ -169,6 +169,7 @@ if (heroDreaminaVideo) {
 function createReportTemplate(key, title) {
   return {
     key,
+    isReport: true,
     icon: "files",
     title: `Form ${title}`,
     description: `Pengaturan kelengkapan ${title} untuk dokumen ${activeMaterialModule.title}.`,
